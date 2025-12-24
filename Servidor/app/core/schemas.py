@@ -92,12 +92,14 @@ class EmotionAnalysisResult(BaseModel):
 class AttendanceVerifyRequest(BaseModel):
     """Request schema for attendance verification"""
     class_id: str = Field(..., description="Unique class session identifier")
+    image_base64: str = Field(..., description="Base64 encoded image containing student's face")
     timestamp: Optional[datetime] = None
     
     class Config:
         json_schema_extra = {
             "example": {
                 "class_id": "CS101-2024-01-15",
+                "image_base64": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
                 "timestamp": "2024-01-15T09:00:00"
             }
         }

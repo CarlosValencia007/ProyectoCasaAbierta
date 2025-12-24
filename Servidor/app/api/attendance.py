@@ -18,7 +18,7 @@ attendance_service = AttendanceService()
     summary="Verify attendance",
     description="Verify single student attendance from image"
 )
-async def verify_attendance(request: AttendanceVerifyRequest, image_base64: str):
+async def verify_attendance(request: AttendanceVerifyRequest):
     """
     Verify student attendance using facial recognition
     
@@ -28,7 +28,7 @@ async def verify_attendance(request: AttendanceVerifyRequest, image_base64: str)
     """
     try:
         result = await attendance_service.verify_attendance(
-            image_base64=image_base64,
+            image_base64=request.image_base64,
             class_id=request.class_id
         )
         

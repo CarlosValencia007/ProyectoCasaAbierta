@@ -1,20 +1,19 @@
 # ==============================================================================
-# SMART CLASSROOM AI - Dependencies
+# SMART CLASSROOM AI - Dependencies (Fixed for Python 3.11)
 # ==============================================================================
 
 # ---- Core Framework ----
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
-pydantic>=2.12.0,<3.0.0
+pydantic>=2.0.0,<3.0.0
 pydantic-settings==2.1.0
 
 # ---- Computer Vision & AI ----
 deepface==0.0.87
 opencv-python-headless==4.9.0.80
-# TensorFlow: usar versión compatible con tu Python
-tensorflow>=2.15.0; python_version < '3.12'
-tensorflow>=2.16.0; python_version >= '3.12'
-tf-keras>=2.20.0  # Requerido por TensorFlow 2.20+
+# TensorFlow: 2.15.0 es muy estable para Python 3.11
+tensorflow==2.15.0
+tf-keras>=2.15.0
 pillow>=10.0.0
 numpy>=1.24.0,<2.0.0
 
@@ -42,7 +41,7 @@ python-dotenv==1.0.0
 
 # ---- Utils ----
 python-dateutil==2.8.2
-pydantic-core==2.14.6
+# Se eliminó pydantic-core manual para evitar conflictos
 
 # ---- Development (Optional) ----
 pytest==7.4.3
