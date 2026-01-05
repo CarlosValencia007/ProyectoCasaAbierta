@@ -67,7 +67,18 @@ class FaceRecognitionService:
             # Return first face embedding
             embedding = embeddings[0]["embedding"]
             
-            self.logger.debug(f"Generated embedding with dimension: {len(embedding)}")
+            self.logger.warning(f"⚠️  EMBEDDING DIMENSION: {len(embedding)} (Expected: 512)")
+            self.logger.warning(f"⚠️  Embedding type: {type(embedding)}")
+            self.logger.warning(f"⚠️  Model used: {self.model}")
+            
+            # CRITICAL FIX: Facenet512 debe retornar EXACTAMENTE 512 dimensiones
+            # Si retorna más, es un bug de DeepFace - tomar solo las primeras 512
+            if len(embedding) != 512:
+                self.logger.error(f"❌ DIMENSION MISMATCH! Got {len(embedding)} instead of 512")
+                self.logger.warning(f"🔧 FIXING: Taking only first 512 dimensions")
+                embedding = embedding[:512]
+            
+            self.logger.info(f"✅ Final embedding dimension: {len(embedding)}")
             return embedding
         
         except FaceNotDetectedException:

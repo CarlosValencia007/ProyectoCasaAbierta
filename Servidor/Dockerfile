@@ -3,7 +3,7 @@
 # Optimized for Google Cloud Run
 # ==============================================================================
 
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 # Metadata
 LABEL maintainer="Smart Classroom Team"
@@ -17,9 +17,9 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install system dependencies for OpenCV and TensorFlow
-# CRÍTICO: libgl1-mesa-glx y libglib2.0-0 son obligatorios para OpenCV
+# CRÍTICO: libgl1 y libglib2.0-0 son obligatorios para OpenCV
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \

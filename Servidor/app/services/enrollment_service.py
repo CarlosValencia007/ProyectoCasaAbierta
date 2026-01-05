@@ -9,6 +9,7 @@ from app.services.face_service import (
     get_face_embedding,  # Nueva función optimizada
     load_image_from_base64
 )
+from app.services.storage_service import StorageService
 from app.db.crud import StudentCRUD
 from app.core.logger import logger
 from app.core.exceptions import DuplicateStudentException, FaceNotDetectedException
@@ -20,6 +21,7 @@ class EnrollmentService:
     def __init__(self):
         self.face_service = FaceRecognitionService()
         self.image_service = ImageProcessingService()
+        self.storage_service = StorageService()
         self.student_crud = StudentCRUD()
     
     async def enroll_student(
@@ -57,6 +59,15 @@ class EnrollmentService:
             if not self.image_service.validate_image(image):
                 raise FaceNotDetectedException("Image is invalid or too small")
             
+            # Upload photo to Supabase Storage
+            photo_url = self.storage_service.upload_student_photo(
+                student_id=student_id,
+                image_base64=image_base64
+            )
+            
+            if not photo_url:
+                logger.warning(f"Failed to upload photo for {student_id}, continuing without URL")
+            
             # Generate embedding
             embedding = self.face_service.generate_embedding(image)
             
@@ -66,7 +77,8 @@ class EnrollmentService:
                 name=name,
                 face_embedding=embedding,
                 email=email,
-                metadata=metadata
+                metadata=metadata,
+                photo_url=photo_url
             )
             
             logger.info(f"Student {student_id} enrolled successfully")
@@ -76,6 +88,7 @@ class EnrollmentService:
                 "message": "Student enrolled successfully",
                 "student_id": student_id,
                 "name": name,
+                "photo_url": photo_url,
                 "embedding_dimension": len(embedding),
                 "enrolled_at": student_record["enrolled_at"]
             }
@@ -227,10 +240,5 @@ class EnrollmentService:
             return {
                 "success": False,
                 "message": f"Error al registrar estudiante: {str(e)}",
-                "student_id": student_id
-            }
-
-                "success": False,
-                "message": str(e),
                 "student_id": student_id
             }

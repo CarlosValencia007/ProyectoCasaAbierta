@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Inicio - Smart Classroom AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .guide-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .step-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .code-block {
+            background: #1F2937;
+            color: #F9FAFB;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+        .warning-box {
+            background: #FEF3C7;
+            border-left: 4px solid var(--warning-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .success-box {
+            background: #D1FAE5;
+            border-left: 4px solid var(--success-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .feature-item {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Smart Classroom AI</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="quickstart.html" class="active">Guía de Inicio</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="guide-container">
+            <h1 style="text-align: center;">🚀 Guía de Inicio Rápido</h1>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 3rem;">
+                Sigue estos pasos para comenzar a usar Smart Classroom AI
+            </p>
+
+            <!-- Paso 1 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h2>Iniciar el Servidor Backend</h2>
+                </div>
+                <p>El backend debe estar ejecutándose antes de usar el frontend.</p>
+                
+                <h4>Windows:</h4>
+                <div class="code-block">
+cd ProyectoCasaAbierta\Servidor<br>
+python -m uvicorn app.main:app --reload
+                </div>
+                
+                <h4>Linux/Mac:</h4>
+                <div class="code-block">
+cd ProyectoCasaAbierta/Servidor<br>
+python -m uvicorn app.main:app --reload
+                </div>
+
+                <div class="success-box">
+                    <strong>✅ Verificación:</strong> Abre <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a> en tu navegador. 
+                    Deberías ver: <code>{"status":"healthy"}</code>
+                </div>
+            </div>
+
+            <!-- Paso 2 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h2>Iniciar el Frontend</h2>
+                </div>
+                <p>Puedes usar cualquiera de estos métodos:</p>
+
+                <h4>Método 1: Script de inicio (Windows)</h4>
+                <div class="code-block">
+cd ProyectoCasaAbierta\Frontend<br>
+start.bat
+                </div>
+
+                <h4>Método 2: Python HTTP Server</h4>
+                <div class="code-block">
+cd ProyectoCasaAbierta/Frontend<br>
+python -m http.server 8080
+                </div>
+
+                <h4>Método 3: Live Server (VS Code)</h4>
+                <p>1. Instala la extensión "Live Server" en VS Code<br>
+                   2. Haz clic derecho en <code>index.html</code><br>
+                   3. Selecciona "Open with Live Server"</p>
+
+                <div class="success-box">
+                    <strong>✅ Verificación:</strong> Abre <a href="http://localhost:8080" target="_blank">http://localhost:8080</a>
+                </div>
+            </div>
+
+            <!-- Paso 3 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h2>Registrar tu Primer Estudiante</h2>
+                </div>
+                <p>Prueba el flujo completo de enrollment:</p>
+                
+                <ol style="line-height: 2;">
+                    <li>Ve a la página <a href="enrollment.html"><strong>Enrollment</strong></a></li>
+                    <li>Completa el formulario:
+                        <ul>
+                            <li>ID: <code>EST001</code></li>
+                            <li>Nombre: Tu nombre completo</li>
+                            <li>Email: (opcional)</li>
+                        </ul>
+                    </li>
+                    <li>Haz clic en "Iniciar Cámara" (permite el acceso cuando lo solicite)</li>
+                    <li>Haz clic en "Capturar Foto"</li>
+                    <li>Haz clic en "Registrar Estudiante"</li>
+                </ol>
+
+                <div class="warning-box">
+                    <strong>⚠️ Importante:</strong> Asegúrate de tener buena iluminación y que tu rostro esté bien centrado en la imagen.
+                </div>
+            </div>
+
+            <!-- Paso 4 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h2>Verificar Asistencia</h2>
+                </div>
+                <p>Prueba el reconocimiento facial:</p>
+                
+                <ol style="line-height: 2;">
+                    <li>Ve a la página <a href="attendance.html"><strong>Attendance</strong></a></li>
+                    <li>Ingresa un ID de clase: <code>CLASE-2025-001</code></li>
+                    <li>Selecciona "Modo Individual"</li>
+                    <li>Haz clic en "Iniciar Cámara"</li>
+                    <li>Haz clic en "Verificar Asistencia"</li>
+                    <li>El sistema debería reconocerte automáticamente</li>
+                </ol>
+
+                <div class="success-box">
+                    <strong>✅ Resultado esperado:</strong> Deberías ver tu nombre y ID con un badge de "Verificado"
+                </div>
+            </div>
+
+            <!-- Paso 5 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">5</span>
+                    <h2>Analizar Emociones</h2>
+                </div>
+                <p>Prueba la detección emocional:</p>
+                
+                <ol style="line-height: 2;">
+                    <li>Ve a la página <a href="emotions.html"><strong>Emotions</strong></a></li>
+                    <li>(Opcional) Ingresa ID de clase y estudiante</li>
+                    <li>Selecciona el modo de análisis que prefieras</li>
+                    <li>Haz clic en "Iniciar Cámara"</li>
+                    <li>Haz clic en "Analizar Emociones"</li>
+                    <li>Observa la emoción detectada y su confianza</li>
+                </ol>
+
+                <div class="warning-box">
+                    <strong>💡 Tip:</strong> Intenta diferentes expresiones faciales para ver cómo cambian las emociones detectadas.
+                </div>
+            </div>
+
+            <!-- Paso 6 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">6</span>
+                    <h2>Explorar el Dashboard</h2>
+                </div>
+                <p>Visualiza estadísticas y reportes:</p>
+                
+                <ol style="line-height: 2;">
+                    <li>Ve a la página <a href="dashboard.html"><strong>Dashboard</strong></a></li>
+                    <li>Observa las métricas generales</li>
+                    <li>Revisa los gráficos de distribución</li>
+                    <li>Explora los estudiantes recientes</li>
+                    <li>Prueba exportar datos en CSV</li>
+                </ol>
+
+                <div class="warning-box">
+                    <strong>ℹ️ Nota:</strong> El dashboard actualmente usa datos de ejemplo. En producción se conectaría con endpoints reales del backend.
+                </div>
+            </div>
+
+            <!-- Funcionalidades -->
+            <div class="step-card">
+                <h2 style="text-align: center; margin-bottom: 2rem;">📋 Funcionalidades Disponibles</h2>
+                
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">👤</div>
+                        <strong>Enrollment</strong>
+                        <p style="font-size: 0.875rem; color: var(--text-light);">
+                            Registro de estudiantes con biometría facial
+                        </p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+                        <strong>Attendance</strong>
+                        <p style="font-size: 0.875rem; color: var(--text-light);">
+                            Verificación automática de asistencia
+                        </p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">😊</div>
+                        <strong>Emotions</strong>
+                        <p style="font-size: 0.875rem; color: var(--text-light);">
+                            Análisis de 7 emociones diferentes
+                        </p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                        <strong>Dashboard</strong>
+                        <p style="font-size: 0.875rem; color: var(--text-light);">
+                            Reportes y métricas de engagement
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solución de problemas -->
+            <div class="step-card">
+                <h2>🐛 Solución de Problemas Comunes</h2>
+                
+                <h4>❌ "No se pudo conectar con el servidor"</h4>
+                <p>→ Verifica que el backend esté ejecutándose en http://localhost:8000</p>
+                
+                <h4>❌ "No se pudo acceder a la cámara"</h4>
+                <p>→ Verifica los permisos del navegador y que no esté siendo usada por otra app</p>
+                
+                <h4>❌ Error CORS</h4>
+                <p>→ Asegúrate de que el backend tenga configurado CORS correctamente</p>
+                
+                <h4>❌ La imagen se ve oscura</h4>
+                <p>→ Mejora la iluminación del ambiente o ajusta la configuración de tu cámara</p>
+
+                <div class="success-box">
+                    <strong>📖 Más información:</strong> Consulta el archivo <code>README.md</code> para documentación completa.
+                </div>
+            </div>
+
+            <!-- Siguiente pasos -->
+            <div class="step-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h2 style="color: white; text-align: center;">🎉 ¡Listo para Empezar!</h2>
+                <p style="text-align: center; margin-top: 1rem;">
+                    Ahora estás listo para usar Smart Classroom AI.<br>
+                    Explora todas las funcionalidades y descubre el poder del reconocimiento facial.
+                </p>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="index.html" class="btn btn-primary" style="background: white; color: var(--primary-color);">
+                        Ir a la Página Principal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Smart Classroom AI</p>
+    </footer>
+</body>
+</html>

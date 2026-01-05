@@ -13,7 +13,7 @@ import time
 from app.core.config import settings
 from app.core.logger import logger
 from app.core.exceptions import SmartClassroomException
-from app.api import enrollment, attendance, emotions, health
+from app.api import enrollment, attendance, emotions, health, classes
 
 
 @asynccontextmanager
@@ -176,6 +176,7 @@ app.include_router(health.router)
 app.include_router(enrollment.router, prefix=settings.API_PREFIX)
 app.include_router(attendance.router, prefix=settings.API_PREFIX)
 app.include_router(emotions.router, prefix=settings.API_PREFIX)
+app.include_router(classes.router, prefix=settings.API_PREFIX)
 
 
 # ============================================================================

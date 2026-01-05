@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - Smart Classroom AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Smart Classroom AI</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="enrollment.html">Enrollment</a></li>
+            <li><a href="attendance.html" class="active">Attendance</a></li>
+            <li><a href="emotions.html">Emotions</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section class="content-section">
+            <h1>✅ Verificación de Asistencia</h1>
+            <p class="subtitle">Toma asistencia usando reconocimiento facial</p>
+
+            <div class="attendance-container">
+                <div class="config-section">
+                    <div class="form-group">
+                        <label for="classId">ID de la Clase *</label>
+                        <input type="text" id="classId" placeholder="Ej: CLASE-2025-001" required>
+                    </div>
+
+                    <div class="mode-selector">
+                        <label>
+                            <input type="radio" name="mode" value="single" checked>
+                            <span>Modo Individual</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="mode" value="batch">
+                            <span>Modo Grupal (Múltiples rostros)</span>
+                        </label>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="startCameraBtn" class="btn btn-primary">
+                            🎥 Iniciar Cámara
+                        </button>
+                        <button id="verifyBtn" class="btn btn-success" disabled>
+                            ✅ Verificar Asistencia
+                        </button>
+                        <button id="stopCameraBtn" class="btn btn-danger" style="display: none;">
+                            ⏹️ Detener
+                        </button>
+                    </div>
+                </div>
+
+                <div class="camera-preview">
+                    <div class="video-container">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <div id="detectionOverlay" class="detection-overlay"></div>
+                    </div>
+                    
+                    <div class="status-info">
+                        <p id="cameraStatus" class="status-text">📷 Cámara desactivada</p>
+                        <div id="verificationCount" class="counter" style="display: none;">
+                            <span id="recognizedCount">0</span> estudiantes reconocidos
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <h3>📋 Resultados de Asistencia</h3>
+                    <div id="attendanceResults" class="results-list">
+                        <p class="empty-state">No hay verificaciones aún. Captura una imagen para comenzar.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="responseMessage" class="message-box" style="display: none;"></div>
+            <div id="loadingSpinner" class="spinner" style="display: none;">
+                <div class="spinner-border"></div>
+                <p>Verificando asistencia...</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Smart Classroom AI</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/attendance.js"></script>
+</body>
+</html>

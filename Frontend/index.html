@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom AI - Home</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Smart Classroom AI</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="enrollment.html">Enrollment</a></li>
+            <li><a href="attendance.html">Attendance</a></li>
+            <li><a href="emotions.html">Emotions</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="quickstart.html">Guía</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section class="hero">
+            <h1>Sistema de Asistencia Inteligente</h1>
+            <p class="subtitle">Reconocimiento Facial y Análisis Emocional en Tiempo Real</p>
+            
+            <div class="features-grid">
+                <div class="feature-card" onclick="window.location.href='enrollment.html'">
+                    <div class="feature-icon">👤</div>
+                    <h3>Enrollment</h3>
+                    <p>Registra nuevos estudiantes con biometría facial</p>
+                    <button class="btn btn-primary">Registrar Estudiante</button>
+                </div>
+                
+                <div class="feature-card" onclick="window.location.href='attendance.html'">
+                    <div class="feature-icon">✅</div>
+                    <h3>Attendance</h3>
+                    <p>Verifica asistencia con reconocimiento facial</p>
+                    <button class="btn btn-primary">Tomar Asistencia</button>
+                </div>
+                
+                <div class="feature-card" onclick="window.location.href='emotions.html'">
+                    <div class="feature-icon">😊</div>
+                    <h3>Emotions</h3>
+                    <p>Analiza el estado emocional de los estudiantes</p>
+                    <button class="btn btn-primary">Analizar Emociones</button>
+                </div>
+                
+                <div class="feature-card" onclick="window.location.href='dashboard.html'">
+                    <div class="feature-icon">📊</div>
+                    <h3>Dashboard</h3>
+                    <p>Visualiza reportes y estadísticas de la clase</p>
+                    <button class="btn btn-primary">Ver Dashboard</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2>🎯 Características del Sistema</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <h4>🔐 Biometría Facial</h4>
+                    <p>DeepFace + FaceNet para reconocimiento preciso</p>
+                </div>
+                <div class="info-item">
+                    <h4>⚡ Tiempo Real</h4>
+                    <p>Procesamiento instantáneo de imágenes</p>
+                </div>
+                <div class="info-item">
+                    <h4>📈 Analytics</h4>
+                    <p>Reportes de engagement y asistencia</p>
+                </div>
+                <div class="info-item">
+                    <h4>🎭 7 Emociones</h4>
+                    <p>Detección de estados emocionales</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Smart Classroom AI - MVP Sistema de Asistencia Inteligente</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+</body>
+</html>

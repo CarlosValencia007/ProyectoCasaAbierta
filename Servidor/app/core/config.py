@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_KEY: str
     SUPABASE_SERVICE_KEY: str | None = None
+    SUPABASE_STORAGE_BUCKET: str = "face-pictures"
     
     # Database
     DATABASE_URL: str

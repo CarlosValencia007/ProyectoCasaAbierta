@@ -21,7 +21,7 @@ class Student(Base):
     email = Column(String(100), nullable=True)
     
     # Facial embedding (128-dimensional for Facenet, 512 for Facenet512)
-    face_embedding = Column(Vector(128), nullable=False)
+    face_embedding = Column(Vector(512), nullable=False)
     
     # Metadata
     enrolled_at = Column(DateTime, default=func.now(), nullable=False)

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotions - Smart Classroom AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Smart Classroom AI</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="enrollment.html">Enrollment</a></li>
+            <li><a href="attendance.html">Attendance</a></li>
+            <li><a href="emotions.html" class="active">Emotions</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section class="content-section">
+            <h1>😊 Análisis Emocional</h1>
+            <p class="subtitle">Detecta y analiza el estado emocional de los estudiantes</p>
+
+            <div class="emotions-container">
+                <div class="config-section">
+                    <div class="form-group">
+                        <label for="classIdEmotion">ID de la Clase</label>
+                        <input type="text" id="classIdEmotion" placeholder="Ej: CLASE-2025-001">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentIdEmotion">ID del Estudiante (Opcional)</label>
+                        <input type="text" id="studentIdEmotion" placeholder="Ej: EST001">
+                    </div>
+
+                    <div class="mode-selector">
+                        <label>
+                            <input type="radio" name="emotionMode" value="single" checked>
+                            <span>Análisis Individual</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="emotionMode" value="batch">
+                            <span>Análisis Grupal</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="emotionMode" value="continuous">
+                            <span>Monitoreo Continuo</span>
+                        </label>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="startCameraBtn" class="btn btn-primary">
+                            🎥 Iniciar Cámara
+                        </button>
+                        <button id="analyzeBtn" class="btn btn-success" disabled>
+                            🎭 Analizar Emociones
+                        </button>
+                        <button id="stopCameraBtn" class="btn btn-danger" style="display: none;">
+                            ⏹️ Detener
+                        </button>
+                    </div>
+                </div>
+
+                <div class="camera-preview">
+                    <div class="video-container">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <div id="emotionOverlay" class="emotion-overlay"></div>
+                    </div>
+                    
+                    <div class="emotion-legend">
+                        <h4>🎭 Emociones Detectables:</h4>
+                        <div class="emotion-chips">
+                            <span class="chip happy">😊 Feliz</span>
+                            <span class="chip sad">😢 Triste</span>
+                            <span class="chip angry">😠 Enojado</span>
+                            <span class="chip surprise">😮 Sorprendido</span>
+                            <span class="chip fear">😨 Temeroso</span>
+                            <span class="chip disgust">🤢 Disgusto</span>
+                            <span class="chip neutral">😐 Neutral</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <h3>📊 Resultados del Análisis</h3>
+                    <div id="emotionResults" class="emotion-results">
+                        <p class="empty-state">No hay análisis aún. Captura una imagen para comenzar.</p>
+                    </div>
+
+                    <div id="emotionChart" class="emotion-chart" style="display: none;">
+                        <h4>Distribución de Emociones</h4>
+                        <canvas id="emotionCanvas"></canvas>
+                    </div>
+
+                    <div id="engagementMetrics" class="metrics-grid" style="display: none;">
+                        <div class="metric-card">
+                            <h4>Engagement Score</h4>
+                            <div class="metric-value" id="engagementScore">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Emoción Dominante</h4>
+                            <div class="metric-value" id="dominantEmotion">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Confianza Promedio</h4>
+                            <div class="metric-value" id="avgConfidence">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="responseMessage" class="message-box" style="display: none;"></div>
+            <div id="loadingSpinner" class="spinner" style="display: none;">
+                <div class="spinner-border"></div>
+                <p>Analizando emociones...</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Smart Classroom AI</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/emotions.js"></script>
+</body>
+</html>

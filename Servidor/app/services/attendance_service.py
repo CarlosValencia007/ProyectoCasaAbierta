@@ -47,15 +47,21 @@ class AttendanceService:
             # Generate embedding
             embedding = self.face_service.generate_embedding(image)
             
-            # Search for matching student
+            # Search for matching student with LOWER threshold to debug
+            logger.warning(f"🔍 Searching for match with threshold 0.8...")
             matches = await self.student_crud.find_by_embedding(
                 embedding=embedding,
-                threshold=0.6,
-                limit=1
+                threshold=0.8,  # TEMPORARY: Lower threshold for debugging
+                limit=5  # Get top 5 matches to see distances
             )
             
+            logger.warning(f"🔍 Found {len(matches)} potential matches")
+            for i, (student, distance) in enumerate(matches[:3]):
+                confidence = 1.0 - (distance / 1.0)
+                logger.warning(f"  Match #{i+1}: Student {student['student_id']} - Distance: {distance:.4f} - Confidence: {confidence:.2%}")
+            
             if not matches:
-                logger.warning("No matching student found")
+                logger.warning("❌ No matching student found (threshold=0.8)")
                 return {
                     "success": False,
                     "message": "Student not recognized",

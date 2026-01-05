@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrollment - Smart Classroom AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Smart Classroom AI</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="enrollment.html" class="active">Enrollment</a></li>
+            <li><a href="attendance.html">Attendance</a></li>
+            <li><a href="emotions.html">Emotions</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section class="content-section">
+            <h1>👤 Registro de Estudiantes</h1>
+            <p class="subtitle">Registra nuevos estudiantes con biometría facial</p>
+
+            <div class="enrollment-container">
+                <div class="form-section">
+                    <form id="enrollmentForm">
+                        <div class="form-group">
+                            <label for="studentId">ID del Estudiante *</label>
+                            <input type="text" id="studentId" name="studentId" required 
+                                   placeholder="Ej: EST001">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="studentName">Nombre Completo *</label>
+                            <input type="text" id="studentName" name="studentName" required 
+                                   placeholder="Ej: Juan Pérez García">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="studentEmail">Email</label>
+                            <input type="email" id="studentEmail" name="studentEmail" 
+                                   placeholder="juan.perez@ejemplo.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Metadata (Opcional)</label>
+                            <textarea id="metadata" name="metadata" rows="3" 
+                                      placeholder='{"carrera": "Ingeniería", "semestre": 5}'></textarea>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="button" id="captureBtn" class="btn btn-secondary">
+                                📷 Capturar Foto
+                            </button>
+                            <button type="submit" id="enrollBtn" class="btn btn-primary" disabled>
+                                ✅ Registrar Estudiante
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="camera-section">
+                    <div class="camera-container">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <img id="capturedImage" alt="Foto capturada" style="display: none;">
+                    </div>
+                    
+                    <div class="camera-controls">
+                        <button id="startCameraBtn" class="btn btn-secondary">
+                            🎥 Iniciar Cámara
+                        </button>
+                        <button id="stopCameraBtn" class="btn btn-danger" style="display: none;">
+                            ⏹️ Detener Cámara
+                        </button>
+                        <button id="retakeBtn" class="btn btn-warning" style="display: none;">
+                            🔄 Tomar Otra Foto
+                        </button>
+                    </div>
+
+                    <div id="instructions" class="instructions">
+                        <p>📸 Instrucciones:</p>
+                        <ul>
+                            <li>Asegúrate de tener buena iluminación</li>
+                            <li>Mira directamente a la cámara</li>
+                            <li>Mantén el rostro centrado</li>
+                            <li>Evita accesorios que cubran el rostro</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="responseMessage" class="message-box" style="display: none;"></div>
+            <div id="loadingSpinner" class="spinner" style="display: none;">
+                <div class="spinner-border"></div>
+                <p>Procesando...</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Smart Classroom AI</p>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/enrollment.js"></script>
+</body>
+</html>

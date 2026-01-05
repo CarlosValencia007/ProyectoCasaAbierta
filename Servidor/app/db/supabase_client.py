@@ -34,9 +34,13 @@ class SupabaseClient:
         """Get or create Supabase client instance"""
         if cls._instance is None:
             try:
+                # Use service_role key for admin operations (Storage, etc.)
+                # Falls back to regular key if service key not available
+                api_key = settings.SUPABASE_SERVICE_KEY or settings.SUPABASE_KEY
+                
                 cls._instance = create_client(
                     supabase_url=settings.SUPABASE_URL,
-                    supabase_key=settings.SUPABASE_KEY
+                    supabase_key=api_key
                 )
                 logger.info("✅ Conexión a Supabase inicializada correctamente")
             except Exception as e:

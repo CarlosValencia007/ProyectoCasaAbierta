@@ -28,7 +28,8 @@ class StudentCRUD:
         name: str,
         face_embedding: List[float],
         email: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        photo_url: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Create new student with facial embedding
@@ -58,6 +59,7 @@ class StudentCRUD:
                 "name": name,
                 "face_embedding": face_embedding,
                 "email": email,
+                "photo_url": photo_url,
                 "metadata": json.dumps(metadata) if metadata else None,
                 "enrolled_at": datetime.utcnow().isoformat(),
                 "is_active": True
@@ -101,6 +103,9 @@ class StudentCRUD:
             List of (student_record, distance) tuples
         """
         try:
+            logger.warning(f"🔎 Calling match_students_by_embedding with threshold={threshold}, limit={limit}")
+            logger.warning(f"🔎 Embedding dimension: {len(embedding)}")
+            
             # Using pgvector's <-> operator for Euclidean distance
             # Note: Supabase Python client might need RPC call for this
             rpc_result = self.client.rpc(
@@ -112,10 +117,13 @@ class StudentCRUD:
                 }
             ).execute()
             
+            logger.warning(f"🔎 RPC returned {len(rpc_result.data) if rpc_result.data else 0} results")
+            
             # Returns list of {student, distance}
             results = []
             for item in rpc_result.data:
                 results.append((item['student'], item['distance']))
+                logger.warning(f"  📌 Student: {item['student']['student_id']}, Distance: {item['distance']:.4f}")
             
             return results
         
