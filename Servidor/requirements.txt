@@ -9,13 +9,12 @@ pydantic>=2.0.0,<3.0.0
 pydantic-settings==2.1.0
 
 # ---- Computer Vision & AI ----
-deepface==0.0.87
-opencv-python-headless==4.9.0.80
-# TensorFlow: 2.15.0 es muy estable para Python 3.11
-tensorflow==2.15.0
-tf-keras>=2.15.0
+deepface>=0.0.87
+opencv-python-headless>=4.9.0.80
+# TensorFlow: Versión compatible con Python 3.13
+tensorflow>=2.20.0
 pillow>=10.0.0
-numpy>=1.24.0,<2.0.0
+numpy>=1.24.0
 
 # ---- Database & Vector Search ----
 supabase>=2.9.0,<2.10.0
@@ -24,8 +23,8 @@ postgrest>=0.17.0,<0.18.0
 realtime>=2.27.0,<3.0.0
 storage3>=0.8.0,<0.9.0
 supafunc>=0.6.0,<0.7.0
-psycopg2-binary==2.9.9
-sqlalchemy==2.0.25
+psycopg2-binary>=2.9.11
+sqlalchemy>=2.0.36
 pgvector==0.2.4
 
 # ---- Async & HTTP ----
