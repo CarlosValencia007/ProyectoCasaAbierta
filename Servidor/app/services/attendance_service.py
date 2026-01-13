@@ -3,13 +3,19 @@ Smart Classroom AI - Attendance Service
 Business logic for attendance verification and management
 """
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import numpy as np
 from app.services.face_service import FaceRecognitionService, ImageProcessingService
 from app.db.crud import StudentCRUD, AttendanceCRUD
 from app.core.logger import logger
 from app.core.exceptions import StudentNotFoundException, FaceNotDetectedException
 from app.core.constants import AttendanceStatus
+
+# Zona horaria de Ecuador (UTC-5)
+ECUADOR_TZ = timezone(timedelta(hours=-5))
+
+# Tiempo de tolerancia en minutos antes de marcar como "late"
+LATE_THRESHOLD_MINUTES = 15
 
 
 class AttendanceService:
@@ -20,6 +26,73 @@ class AttendanceService:
         self.image_service = ImageProcessingService()
         self.student_crud = StudentCRUD()
         self.attendance_crud = AttendanceCRUD()
+    
+    async def _get_class_start_time(self, class_id: str) -> Optional[datetime]:
+        """
+        Get the start time of a class session
+        
+        Args:
+            class_id: Class session identifier
+        
+        Returns:
+            Start time as datetime or None if not found
+        """
+        try:
+            from app.db.supabase_client import get_supabase
+            client = get_supabase()
+            
+            response = client.table("class_sessions")\
+                .select("start_time")\
+                .eq("class_id", class_id)\
+                .execute()
+            
+            if response.data and len(response.data) > 0:
+                start_time_str = response.data[0].get("start_time")
+                if start_time_str:
+                    # Parse ISO format datetime
+                    return datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
+            return None
+        except Exception as e:
+            logger.error(f"Error getting class start time: {str(e)}")
+            return None
+    
+    def _determine_attendance_status(self, class_start_time: Optional[datetime]) -> str:
+        """
+        Determine if attendance should be marked as 'present' or 'late'
+        based on the class start time and current time in Ecuador timezone
+        
+        Args:
+            class_start_time: When the class started
+        
+        Returns:
+            'present' if within tolerance, 'late' if past tolerance
+        """
+        if class_start_time is None:
+            # If we can't determine start time, default to present
+            return AttendanceStatus.PRESENT.value
+        
+        # Current time in Ecuador timezone
+        now_ecuador = datetime.now(ECUADOR_TZ)
+        
+        # Ensure class_start_time is timezone-aware
+        if class_start_time.tzinfo is None:
+            # Assume class start time is in Ecuador timezone
+            class_start_time = class_start_time.replace(tzinfo=ECUADOR_TZ)
+        
+        # Calculate time difference
+        time_diff = now_ecuador - class_start_time
+        minutes_late = time_diff.total_seconds() / 60
+        
+        logger.info(f"⏰ Hora actual (Ecuador): {now_ecuador.strftime('%H:%M:%S')}")
+        logger.info(f"⏰ Hora inicio clase: {class_start_time.strftime('%H:%M:%S')}")
+        logger.info(f"⏰ Minutos desde inicio: {minutes_late:.1f}")
+        
+        if minutes_late > LATE_THRESHOLD_MINUTES:
+            logger.info(f"⚠️ Estudiante llegó TARDE ({minutes_late:.0f} min > {LATE_THRESHOLD_MINUTES} min)")
+            return AttendanceStatus.LATE.value
+        else:
+            logger.info(f"✅ Estudiante llegó A TIEMPO ({minutes_late:.0f} min <= {LATE_THRESHOLD_MINUTES} min)")
+            return AttendanceStatus.PRESENT.value
     
     async def verify_attendance(
         self,
@@ -72,22 +145,46 @@ class AttendanceService:
             student_record, distance = matches[0]
             confidence = 1.0 - (distance / 1.0)  # Convert distance to confidence
             
-            # Mark attendance
+            # Get class start time and determine if late
+            class_start_time = await self._get_class_start_time(class_id)
+            attendance_status = self._determine_attendance_status(class_start_time)
+            
+            # Mark attendance (will check for duplicates automatically)
             attendance_record = await self.attendance_crud.mark_attendance(
                 student_id=student_record["student_id"],
                 class_id=class_id,
-                status=AttendanceStatus.PRESENT.value,
+                status=attendance_status,
                 confidence=confidence,
                 match_distance=distance
             )
             
-            logger.info(f"Attendance verified for {student_record['student_id']} (confidence: {confidence:.2f})")
+            # Check if attendance was already registered
+            already_registered = attendance_record.get("already_registered", False)
+            
+            if already_registered:
+                logger.info(f"Attendance already registered for {student_record['student_id']} in {class_id}")
+                return {
+                    "success": True,
+                    "already_registered": True,
+                    "student_id": student_record["student_id"],
+                    "student_name": student_record["name"],
+                    "status": attendance_record.get("status", AttendanceStatus.PRESENT.value),
+                    "confidence": confidence,
+                    "match_distance": distance,
+                    "timestamp": attendance_record["timestamp"],
+                    "message": f"⚠️ El estudiante {student_record['name']} ya tiene asistencia registrada en esta clase"
+                }
+            
+            # Build status message based on attendance status
+            status_msg = "✅ Presente" if attendance_status == AttendanceStatus.PRESENT.value else "⚠️ Atrasado"
+            logger.info(f"Attendance verified for {student_record['student_id']} - {status_msg} (confidence: {confidence:.2f})")
             
             return {
                 "success": True,
+                "already_registered": False,
                 "student_id": student_record["student_id"],
                 "student_name": student_record["name"],
-                "status": AttendanceStatus.PRESENT.value,
+                "status": attendance_status,
                 "confidence": confidence,
                 "match_distance": distance,
                 "timestamp": attendance_record["timestamp"]

@@ -30,7 +30,9 @@ class EnrollmentService:
         name: str,
         image_base64: str,
         email: str = None,
-        metadata: Dict[str, Any] = None
+        metadata: Dict[str, Any] = None,
+        teacher_id: str = None,
+        course_id: str = None
     ) -> Dict[str, Any]:
         """
         Enroll a new student with facial biometric
@@ -78,7 +80,9 @@ class EnrollmentService:
                 face_embedding=embedding,
                 email=email,
                 metadata=metadata,
-                photo_url=photo_url
+                photo_url=photo_url,
+                teacher_id=teacher_id,
+                course_id=course_id
             )
             
             logger.info(f"Student {student_id} enrolled successfully")

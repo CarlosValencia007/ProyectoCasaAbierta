@@ -2,7 +2,7 @@
 Smart Classroom AI - Emotion Analysis API Router
 Endpoints for emotion detection and classroom engagement analysis
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, File, UploadFile, Form
 from typing import List, Optional
 from datetime import datetime
 from app.core.schemas import BaseResponse
@@ -22,42 +22,63 @@ emotion_crud = EmotionEventCRUD()
     summary="Analyze emotion",
     description="Detect emotion from a single face image"
 )
-async def analyze_emotion(image_base64: str, student_id: Optional[str] = None, class_id: Optional[str] = None):
+async def analyze_emotion(
+    image: UploadFile = File(...),
+    student_id: Optional[str] = Form(None),
+    class_id: Optional[str] = Form(None)
+):
     """
     Analyze emotion from face image
     
-    - **image_base64**: Base64 encoded face image
+    - **image**: Face image file
     - **student_id**: Optional student identifier
     - **class_id**: Optional class session identifier
     """
     try:
-        # Convert image
-        image = image_service.base64_to_image(image_base64)
+        # Read image file
+        image_bytes = await image.read()
+        img = image_service.bytes_to_image(image_bytes)
         
         # Validate
-        if not image_service.validate_image(image):
+        if not image_service.validate_image(img):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid image"
             )
         
         # Analyze emotion
-        emotion_result = emotion_service.analyze_emotion(image)
+        emotion_result = emotion_service.analyze_emotion(img)
         
-        # Save to database if student and class provided
-        if student_id and class_id:
-            await emotion_crud.record_emotion(
-                student_id=student_id,
-                class_id=class_id,
-                dominant_emotion=emotion_result["dominant_emotion"],
-                confidence=emotion_result["confidence"],
-                emotion_scores=emotion_result["all_emotions"]
-            )
+        # Format response for frontend
+        emotions_list = [{
+            "emotion": emotion_result["dominant_emotion"],
+            "confidence": emotion_result["confidence"] / 100.0,  # Convert to 0-1 range
+            "student_id": student_id,
+            "student_name": None  # Could be looked up if student_id provided
+        }]
+        
+        # Save to database only if both class_id and student_id are provided
+        # (student_id must exist in students table due to foreign key constraint)
+        if class_id and student_id:
+            try:
+                await emotion_crud.record_emotion(
+                    student_id=student_id,
+                    class_id=class_id,
+                    dominant_emotion=emotion_result["dominant_emotion"],
+                    confidence=emotion_result["confidence"],
+                    emotion_scores=emotion_result["all_emotions"]
+                )
+            except Exception as db_error:
+                logger.warning(f"Failed to save emotion to database: {str(db_error)}")
+                # Continue anyway - the analysis was successful even if DB save failed
         
         return BaseResponse(
             success=True,
             message="Emotion analyzed successfully",
-            data=emotion_result
+            data={
+                "emotions": emotions_list,
+                "raw_data": emotion_result
+            }
         )
     
     except HTTPException:
@@ -198,6 +219,42 @@ async def get_class_emotion_summary(
     
     except Exception as e:
         logger.error(f"Class emotion summary error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get(
+    "/class/{class_id}",
+    response_model=BaseResponse,
+    summary="Get class emotion logs",
+    description="Get all emotion events for a specific class"
+)
+async def get_class_emotion_logs(class_id: str):
+    """
+    Get emotion logs for a class
+    
+    - **class_id**: Class session identifier
+    """
+    try:
+        from app.db.supabase_client import get_supabase
+        
+        client = get_supabase()
+        response = client.table("emotion_events")\
+            .select("*")\
+            .eq("class_id", class_id)\
+            .order("detected_at", desc=True)\
+            .execute()
+        
+        return BaseResponse(
+            success=True,
+            message=f"Found {len(response.data)} emotion events",
+            data={"logs": response.data}
+        )
+    
+    except Exception as e:
+        logger.error(f"Class emotion logs error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)

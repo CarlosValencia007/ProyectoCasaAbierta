@@ -226,7 +226,13 @@ class EmotionAnalysisService:
                 "all_emotions": emotions
             }
             
-            self.logger.debug(f"Detected emotion: {mapped_emotion} ({emotions[dominant_emotion]:.2f}%)")
+            # Log detallado de TODAS las emociones detectadas
+            self.logger.info(f"🎭 Emoción dominante: {mapped_emotion} ({emotions[dominant_emotion]:.1f}%)")
+            self.logger.info(f"📊 Todas las emociones detectadas:")
+            for emo, score in sorted(emotions.items(), key=lambda x: x[1], reverse=True):
+                bar = "█" * int(score / 10) + "░" * (10 - int(score / 10))
+                self.logger.info(f"   {emo:10} {bar} {score:.1f}%")
+            
             return result
         
         except ValueError as e:
@@ -453,6 +459,27 @@ class ImageProcessingService:
         LEGACY: Usa load_image_from_base64() en código nuevo
         """
         return load_image_from_base64(base64_string)
+    
+    @staticmethod
+    def bytes_to_image(image_bytes: bytes) -> np.ndarray:
+        """
+        Convert bytes to numpy array (OpenCV format)
+        """
+        try:
+            # Convert bytes to PIL Image
+            pil_image = Image.open(io.BytesIO(image_bytes))
+            
+            # Convert PIL to numpy array
+            image_np = np.array(pil_image)
+            
+            # Convert RGB to BGR (OpenCV format)
+            if len(image_np.shape) == 3 and image_np.shape[2] == 3:
+                image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+            
+            return image_np
+        except Exception as e:
+            logger.error(f"Failed to convert bytes to image: {str(e)}")
+            raise InvalidImageException(f"Invalid image bytes: {str(e)}")
     
     @staticmethod
     def validate_image(image: np.ndarray) -> bool:

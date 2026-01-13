@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     
     # DeepFace
     FACE_DETECTOR_BACKEND: str = "retinaface"
-    FACE_RECOGNITION_MODEL: str = "Facenet"
+    FACE_RECOGNITION_MODEL: str = "Facenet512"
     EMOTION_MODEL: str = "default"
     DISTANCE_METRIC: str = "euclidean"
     

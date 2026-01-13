@@ -25,6 +25,8 @@ class ClassCreateSimpleRequest(BaseModel):
     end_time: str = Field(..., description="End time (HH:MM)")
     instructor: Optional[str] = Field(None, max_length=100, description="Instructor name")
     room: Optional[str] = Field(None, max_length=50, description="Room number/name")
+    teacher_id: Optional[str] = Field(None, description="ID del profesor")
+    course_id: Optional[str] = Field(None, description="ID del curso/materia")
 
 
 class ClassCreateRequest(BaseModel):
@@ -36,6 +38,8 @@ class ClassCreateRequest(BaseModel):
     start_time: datetime = Field(..., description="Class start time")
     end_time: Optional[datetime] = Field(None, description="Class end time")
     metadata: Optional[dict] = Field(None, description="Additional metadata (JSON)")
+    teacher_id: Optional[str] = Field(None, description="ID del profesor")
+    course_id: Optional[str] = Field(None, description="ID del curso/materia")
 
 
 class ClassUpdateRequest(BaseModel):
@@ -109,7 +113,9 @@ async def create_class_simple(request: ClassCreateSimpleRequest):
             "total_students": 0,
             "present_count": 0,
             "attendance_rate": 0.0,
-            "metadata": None
+            "metadata": None,
+            "teacher_id": request.teacher_id,
+            "course_id": request.course_id
         }
         
         result = supabase.table("class_sessions").insert(class_data).execute()
@@ -178,6 +184,13 @@ async def create_class(request: ClassCreateRequest):
             )
         
         # Create class session
+        # Note: teacher_id and course_id can be stored in metadata if needed
+        metadata = request.metadata or {}
+        if request.teacher_id:
+            metadata['teacher_id'] = request.teacher_id
+        if request.course_id:
+            metadata['course_id'] = request.course_id
+        
         class_data = {
             "class_id": request.class_id,
             "class_name": request.class_name,
@@ -188,7 +201,7 @@ async def create_class(request: ClassCreateRequest):
             "total_students": 0,
             "present_count": 0,
             "attendance_rate": 0.0,
-            "metadata": request.metadata
+            "metadata": metadata if metadata else None
         }
         
         result = supabase.table("class_sessions").insert(class_data).execute()
@@ -214,6 +227,91 @@ async def create_class(request: ClassCreateRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error creating class: {str(e)}"
+        )
+
+
+@router.get(
+    "/active",
+    response_model=BaseResponse,
+    summary="Get active class sessions",
+    description="Get all class sessions that are currently active (end_time is null)"
+)
+async def get_active_classes():
+    """
+    Get all active class sessions (sessions without end_time)
+    """
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table("class_sessions")\
+            .select("*")\
+            .is_("end_time", "null")\
+            .order("start_time", desc=True)\
+            .execute()
+        
+        return BaseResponse(
+            success=True,
+            message=f"Retrieved {len(result.data)} active class sessions",
+            data={
+                "classes": result.data,
+                "count": len(result.data)
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error retrieving active classes: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving active classes: {str(e)}"
+        )
+
+
+@router.post(
+    "/{class_id}/end",
+    response_model=BaseResponse,
+    summary="End a class session",
+    description="Mark a class session as ended by setting the end_time"
+)
+async def end_class(class_id: str):
+    """
+    End an active class session
+    
+    - **class_id**: The unique identifier of the class to end
+    """
+    try:
+        from datetime import datetime
+        supabase = get_supabase()
+        
+        # Check if class exists
+        existing = supabase.table("class_sessions").select("*").eq("class_id", class_id).execute()
+        
+        if not existing.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Class with ID '{class_id}' not found"
+            )
+        
+        # Update end_time
+        result = supabase.table("class_sessions")\
+            .update({"end_time": datetime.utcnow().isoformat()})\
+            .eq("class_id", class_id)\
+            .execute()
+        
+        logger.info(f"Class session ended: {class_id}")
+        
+        return BaseResponse(
+            success=True,
+            message=f"Class session '{class_id}' ended successfully",
+            data=result.data[0] if result.data else None
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error ending class: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error ending class: {str(e)}"
         )
 
 

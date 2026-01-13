@@ -13,7 +13,7 @@ import time
 from app.core.config import settings
 from app.core.logger import logger
 from app.core.exceptions import SmartClassroomException
-from app.api import enrollment, attendance, emotions, health, classes
+from app.api import enrollment, attendance, emotions, health, classes, statistics, enrollments
 
 
 @asynccontextmanager
@@ -81,12 +81,14 @@ app = FastAPI(
 # ============================================================================
 
 # CORS Middleware
+logger.info(f"🌐 CORS Origins from settings: {settings.cors_origins_list}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=settings.CORS_METHODS.split(","),
-    allow_headers=settings.CORS_HEADERS.split(",") if settings.CORS_HEADERS != "*" else ["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # GZip Compression Middleware
@@ -138,12 +140,25 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     """Handle request validation errors"""
     logger.warning(f"Validation error: {exc.errors()}")
     
+    # Clean errors to remove non-serializable data like bytes
+    errors = []
+    for error in exc.errors():
+        clean_error = {
+            "loc": error.get("loc"),
+            "msg": error.get("msg"),
+            "type": error.get("type")
+        }
+        # Only include input if it's not bytes
+        if "input" in error and not isinstance(error["input"], bytes):
+            clean_error["input"] = str(error["input"])[:100]  # Limit to 100 chars
+        errors.append(clean_error)
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "success": False,
             "message": "Request validation failed",
-            "errors": exc.errors(),
+            "errors": errors,
             "timestamp": time.time()
         }
     )
@@ -177,6 +192,8 @@ app.include_router(enrollment.router, prefix=settings.API_PREFIX)
 app.include_router(attendance.router, prefix=settings.API_PREFIX)
 app.include_router(emotions.router, prefix=settings.API_PREFIX)
 app.include_router(classes.router, prefix=settings.API_PREFIX)
+app.include_router(statistics.router, prefix=settings.API_PREFIX)
+app.include_router(enrollments.router, prefix=settings.API_PREFIX)
 
 
 # ============================================================================

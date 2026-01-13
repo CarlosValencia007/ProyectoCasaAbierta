@@ -27,23 +27,38 @@ enrollment_service = EnrollmentService()
     summary="Enroll new student",
     description="Register a new student with facial biometric data"
 )
-async def enroll_student(request: StudentEnrollRequest):
+async def enroll_student(
+    student_id: str = Form(...),
+    name: str = Form(...),
+    email: Optional[str] = Form(None),
+    image: UploadFile = File(...),
+    course_id: Optional[str] = Form(None),
+    teacher_id: Optional[str] = Form(None)
+):
     """
     Enroll a new student in the system
     
     - **student_id**: Unique identifier for the student
     - **name**: Full name of the student
-    - **image_base64**: Base64 encoded image of the student's face
+    - **image**: Image file of the student's face
     - **email**: Optional email address
-    - **metadata**: Optional additional information (JSON object)
+    - **course_id**: Optional course ID
+    - **teacher_id**: Optional teacher ID
     """
     try:
+        # Read image file and convert to base64
+        import base64
+        image_bytes = await image.read()
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        
         result = await enrollment_service.enroll_student(
-            student_id=request.student_id,
-            name=request.name,
-            image_base64=request.image_base64,
-            email=request.email,
-            metadata=request.metadata
+            student_id=student_id,
+            name=name,
+            image_base64=image_base64,
+            email=email,
+            metadata=None,
+            teacher_id=teacher_id,
+            course_id=course_id
         )
         
         if not result["success"]:
@@ -171,11 +186,12 @@ async def list_students(active_only: bool = True, limit: int = 100, offset: int 
         # Pagination
         paginated_students = students[offset:offset + limit]
         
-        # Remove embeddings
-        students_info = [
-            {k: v for k, v in s.items() if k != "face_embedding"}
-            for s in paginated_students
-        ]
+        # Remove embeddings but add a flag to indicate if it exists
+        students_info = []
+        for s in paginated_students:
+            student_info = {k: v for k, v in s.items() if k != "face_embedding"}
+            student_info["has_embedding"] = bool(s.get("face_embedding"))
+            students_info.append(student_info)
         
         return BaseResponse(
             success=True,
@@ -281,4 +297,51 @@ async def enroll_student_optimized(payload: EnrollmentRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"Error interno del servidor: {error_message}"
+        )
+
+
+@router.delete(
+    "/students/{student_id}",
+    response_model=BaseResponse,
+    summary="Delete a student",
+    description="Delete a student from the system by student_id"
+)
+async def delete_student(student_id: str):
+    """
+    Delete a student from the system
+    
+    - **student_id**: The student_id of the student to delete (e.g., "2020411")
+    """
+    try:
+        from app.db.supabase_client import get_supabase
+        
+        client = get_supabase()
+        
+        # Check if student exists
+        existing = client.table("students").select("id").eq("student_id", student_id).execute()
+        
+        if not existing.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Student with ID '{student_id}' not found"
+            )
+        
+        # Delete student
+        result = client.table("students").delete().eq("student_id", student_id).execute()
+        
+        logger.info(f"Student {student_id} deleted successfully")
+        
+        return BaseResponse(
+            success=True,
+            message=f"Student {student_id} deleted successfully",
+            data={"student_id": student_id}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting student: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting student: {str(e)}"
         )

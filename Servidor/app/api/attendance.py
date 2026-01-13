@@ -2,8 +2,8 @@
 Smart Classroom AI - Attendance API Router
 Endpoints for attendance verification and reporting
 """
-from fastapi import APIRouter, HTTPException, status
-from typing import List
+from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form
+from typing import List, Optional
 from app.core.schemas import BaseResponse, AttendanceVerifyRequest, BatchAttendanceRequest
 from app.services.attendance_service import AttendanceService
 from app.core.logger import logger
@@ -18,18 +18,25 @@ attendance_service = AttendanceService()
     summary="Verify attendance",
     description="Verify single student attendance from image"
 )
-async def verify_attendance(request: AttendanceVerifyRequest):
+async def verify_attendance(
+    class_id: str = Form(...),
+    image: UploadFile = File(...)
+):
     """
     Verify student attendance using facial recognition
     
     - **class_id**: Unique identifier for the class session
-    - **image_base64**: Base64 encoded image containing student's face
-    - **timestamp**: Optional timestamp (defaults to current time)
+    - **image**: Image file containing student's face
     """
     try:
+        # Read image file and convert to base64
+        import base64
+        image_bytes = await image.read()
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        
         result = await attendance_service.verify_attendance(
-            image_base64=request.image_base64,
-            class_id=request.class_id
+            image_base64=image_base64,
+            class_id=class_id
         )
         
         if not result["success"]:
@@ -95,6 +102,57 @@ async def batch_verify_attendance(request: BatchAttendanceRequest):
         raise
     except Exception as e:
         logger.error(f"Batch verification error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get(
+    "/class/{class_id}",
+    response_model=BaseResponse,
+    summary="Get class attendance records",
+    description="Retrieve all attendance records for a specific class session"
+)
+async def get_class_attendance(class_id: str):
+    """
+    Get all attendance records for a class session
+    
+    - **class_id**: The class session identifier
+    """
+    try:
+        from app.db.supabase_client import get_supabase
+        
+        client = get_supabase()
+        
+        # Get attendance records with student info (using select with foreign key)
+        response = client.table("attendance")\
+            .select("*, students(student_id, name, email)")\
+            .eq("class_id", class_id)\
+            .order("timestamp", desc=True)\
+            .execute()
+        
+        # Format records to include student name at top level
+        formatted_records = []
+        for record in response.data:
+            student_info = record.pop('students', None)
+            if student_info:
+                record['student_name'] = student_info['name']
+                record['student_email'] = student_info.get('email')
+            formatted_records.append(record)
+        
+        return BaseResponse(
+            success=True,
+            message=f"Found {len(formatted_records)} attendance records",
+            data={
+                "class_id": class_id,
+                "total": len(formatted_records),
+                "records": formatted_records
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"Error retrieving class attendance: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)

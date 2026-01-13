@@ -29,7 +29,9 @@ class StudentCRUD:
         face_embedding: List[float],
         email: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        photo_url: Optional[str] = None
+        photo_url: Optional[str] = None,
+        teacher_id: Optional[str] = None,
+        course_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Create new student with facial embedding
@@ -53,14 +55,20 @@ class StudentCRUD:
             if existing.data:
                 raise DuplicateStudentException(student_id)
             
-            # Prepare data
+            # Prepare data - teacher_id and course_id go in metadata since they don't exist as columns
+            metadata_dict = metadata or {}
+            if teacher_id:
+                metadata_dict["teacher_id"] = teacher_id
+            if course_id:
+                metadata_dict["course_id"] = course_id
+            
             data = {
                 "student_id": student_id,
                 "name": name,
                 "face_embedding": face_embedding,
                 "email": email,
                 "photo_url": photo_url,
-                "metadata": json.dumps(metadata) if metadata else None,
+                "metadata": metadata_dict if metadata_dict else None,
                 "enrolled_at": datetime.utcnow().isoformat(),
                 "is_active": True
             }
@@ -173,6 +181,35 @@ class AttendanceCRUD:
     def __init__(self, client: Optional[Client] = None):
         self.client = client or get_supabase()
     
+    async def check_attendance_exists(
+        self,
+        student_id: str,
+        class_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Check if attendance already exists for a student in a class
+        
+        Args:
+            student_id: Student identifier
+            class_id: Class session identifier
+        
+        Returns:
+            Existing attendance record if found, None otherwise
+        """
+        try:
+            response = self.client.table("attendance")\
+                .select("*")\
+                .eq("student_id", student_id)\
+                .eq("class_id", class_id)\
+                .execute()
+            
+            if response.data and len(response.data) > 0:
+                return response.data[0]
+            return None
+        except Exception as e:
+            logger.error(f"Failed to check attendance: {str(e)}")
+            return None
+    
     async def mark_attendance(
         self,
         student_id: str,
@@ -181,8 +218,17 @@ class AttendanceCRUD:
         confidence: Optional[float] = None,
         match_distance: Optional[float] = None
     ) -> Dict[str, Any]:
-        """Mark attendance for a student"""
+        """Mark attendance for a student (only once per class)"""
         try:
+            # Check if attendance already exists for this student in this class
+            existing_attendance = await self.check_attendance_exists(student_id, class_id)
+            
+            if existing_attendance:
+                logger.info(f"Attendance already exists for {student_id} in {class_id}")
+                # Return the existing record with a flag indicating it was already registered
+                existing_attendance["already_registered"] = True
+                return existing_attendance
+            
             data = {
                 "student_id": student_id,
                 "class_id": class_id,
@@ -194,7 +240,9 @@ class AttendanceCRUD:
             
             response = self.client.table("attendance").insert(data).execute()
             logger.info(f"Attendance marked for {student_id} in {class_id}")
-            return response.data[0]
+            result = response.data[0]
+            result["already_registered"] = False
+            return result
         
         except Exception as e:
             logger.error(f"Failed to mark attendance: {str(e)}")

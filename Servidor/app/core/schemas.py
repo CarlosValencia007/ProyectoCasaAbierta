@@ -27,6 +27,8 @@ class StudentEnrollRequest(BaseModel):
     image_base64: str = Field(..., description="Base64 encoded image of student's face")
     email: Optional[str] = Field(None, pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
     metadata: Optional[Dict[str, Any]] = None
+    teacher_id: Optional[str] = Field(None, description="ID del profesor que registra al estudiante")
+    course_id: Optional[str] = Field(None, description="ID del curso/materia asociada")
     
     @field_validator("student_id")
     @classmethod
