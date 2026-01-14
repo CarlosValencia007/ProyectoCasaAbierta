@@ -1,47 +1,37 @@
 /**
- * PageHeader - Header de página reutilizable
+ * PageHeader - Header de página estilo Moodle
  */
 <template>
-  <div class="mb-8" :class="{ 'flex justify-between items-center': hasAction }">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-        <FontAwesomeIcon :icon="['fas', icon]" :class="iconColorClass" />
-        {{ title }}
-      </h1>
-      <p v-if="description" class="mt-2 text-sm text-gray-600">
+  <div class="bg-white rounded-lg border border-gray-200 mb-6">
+    <div class="px-6 py-4" :class="{ 'border-b border-gray-200': hasAction || description }">
+      <div class="flex items-center justify-between">
+        <h1 class="text-xl font-semibold text-[#d63031] flex items-center gap-2">
+          <FontAwesomeIcon v-if="icon" :icon="['fas', icon]" />
+          {{ title }}
+        </h1>
+        <slot name="action"></slot>
+      </div>
+      <p v-if="description" class="mt-2 text-sm text-gray-500">
         {{ description }}
       </p>
     </div>
-    <slot name="action"></slot>
+    <div v-if="$slots.default" class="p-6">
+      <slot></slot>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useSlots } from 'vue'
+import { useSlots } from 'vue'
 
 interface Props {
   title: string
-  icon: string
-  iconColor?: 'primary' | 'green' | 'purple' | 'blue' | 'yellow'
+  icon?: string
   description?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  iconColor: 'primary'
-})
+defineProps<Props>()
 
 const slots = useSlots()
-
-const hasAction = computed(() => !!slots.action)
-
-const iconColorClass = computed(() => {
-  const colors = {
-    primary: 'text-[#b81a16]',
-    green: 'text-green-600',
-    purple: 'text-purple-600',
-    blue: 'text-blue-600',
-    yellow: 'text-yellow-600'
-  }
-  return colors[props.iconColor]
-})
+const hasAction = !!slots.action
 </script>

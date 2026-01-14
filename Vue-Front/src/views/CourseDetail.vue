@@ -60,61 +60,60 @@
       </div>
 
       <!-- Quick Actions -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <FontAwesomeIcon :icon="['fas', 'rocket']" class="text-[#b81a16]" />
+      <div class="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <h2 class="text-xl font-semibold text-[#d63031] mb-4">
           Acciones Rapidas
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             @click="openAddStudentModal"
-            class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+            class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
           >
-            <span class="text-3xl mr-3 text-blue-600">
+            <span class="text-2xl mr-3 text-gray-600">
               <FontAwesomeIcon :icon="['fas', 'user-plus']" />
             </span>
             <div class="text-left">
-              <p class="font-semibold text-gray-900">Anadir Estudiante</p>
-              <p class="text-xs text-gray-600">De los registrados</p>
+              <p class="font-medium text-gray-800">Anadir Estudiante</p>
+              <p class="text-xs text-gray-500">De los registrados</p>
             </div>
           </button>
 
           <button
             @click="openCreateSessionModal"
-            class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200"
+            class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
           >
-            <span class="text-3xl mr-3 text-green-600">
+            <span class="text-2xl mr-3 text-gray-600">
               <FontAwesomeIcon :icon="['fas', 'file-pen']" />
             </span>
             <div class="text-left">
-              <p class="font-semibold text-gray-900">Iniciar Sesion</p>
-              <p class="text-xs text-gray-600">Nueva clase</p>
+              <p class="font-medium text-gray-800">Iniciar Sesion</p>
+              <p class="text-xs text-gray-500">Nueva clase</p>
             </div>
           </button>
 
           <button
             @click="$router.push(`/courses/${courseId}/attendance`)"
-            class="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors duration-200"
+            class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
           >
-            <span class="text-3xl mr-3 text-yellow-600">
+            <span class="text-2xl mr-3 text-gray-600">
               <FontAwesomeIcon :icon="['fas', 'camera']" />
             </span>
             <div class="text-left">
-              <p class="font-semibold text-gray-900">Tomar Asistencia</p>
-              <p class="text-xs text-gray-600">Verificacion facial</p>
+              <p class="font-medium text-gray-800">Tomar Asistencia</p>
+              <p class="text-xs text-gray-500">Verificacion facial</p>
             </div>
           </button>
 
           <button
             @click="$router.push(`/courses/${courseId}/emotions`)"
-            class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200"
+            class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
           >
-            <span class="text-3xl mr-3 text-purple-600">
+            <span class="text-2xl mr-3 text-gray-600">
               <FontAwesomeIcon :icon="['fas', 'masks-theater']" />
             </span>
             <div class="text-left">
-              <p class="font-semibold text-gray-900">Analizar Emociones</p>
-              <p class="text-xs text-gray-600">Estado emocional</p>
+              <p class="font-medium text-gray-800">Analizar Emociones</p>
+              <p class="text-xs text-gray-500">Estado emocional</p>
             </div>
           </button>
         </div>
@@ -149,7 +148,7 @@
               <p class="text-sm text-gray-600">{{ students.length }} estudiantes inscritos</p>
               <button
                 @click="openAddStudentModal"
-                class="px-4 py-2 bg-[#b81a16] text-white rounded-lg hover:bg-[#9a1512] text-sm font-medium inline-flex items-center gap-2"
+                class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm font-medium inline-flex items-center gap-2"
               >
                 <FontAwesomeIcon :icon="['fas', 'plus']" />
                 Anadir Estudiante
@@ -166,7 +165,7 @@
               </p>
               <button
                 @click="openAddStudentModal"
-                class="px-6 py-3 bg-[#b81a16] text-white rounded-lg hover:bg-[#9a1512] inline-flex items-center gap-2"
+                class="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 inline-flex items-center gap-2"
               >
                 <FontAwesomeIcon :icon="['fas', 'plus']" />
                 Anadir Estudiantes Registrados
@@ -322,7 +321,7 @@
             <button
               @click="enrollStudent(student.student_id)"
               :disabled="addingStudent"
-              class="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50"
+              class="px-3 py-1 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm font-medium disabled:opacity-50"
             >
               {{ addingStudent ? '...' : '+ Añadir' }}
             </button>

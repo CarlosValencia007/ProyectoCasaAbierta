@@ -1,38 +1,40 @@
 /**
- * ConfirmModal - Modal de confirmación reutilizable
+ * ConfirmModal - Modal de confirmación estilo Moodle
  */
 <template>
   <Teleport to="body">
     <div
       v-if="show"
-      class="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4 z-50"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
       @click.self="$emit('cancel')"
     >
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <FontAwesomeIcon 
-            v-if="icon" 
-            :icon="['fas', icon]" 
-            :class="iconColorClass" 
-          />
-          {{ title }}
-        </h2>
-        <div class="text-gray-600 mb-6">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <FontAwesomeIcon 
+              v-if="icon" 
+              :icon="['fas', icon]" 
+              :class="iconColorClass" 
+            />
+            {{ title }}
+          </h2>
+        </div>
+        <div class="p-6 text-gray-600">
           <slot>
             <p>{{ message }}</p>
           </slot>
         </div>
-        <div class="flex gap-3">
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3 justify-end">
           <button
             @click="$emit('cancel')"
-            class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium"
+            class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-100 transition-colors"
           >
             {{ cancelText }}
           </button>
           <button
             @click="$emit('confirm')"
             :disabled="loading"
-            class="flex-1 px-4 py-2 rounded-lg transition-colors duration-200 font-medium disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            class="px-4 py-2 rounded transition-colors disabled:opacity-50 inline-flex items-center gap-2"
             :class="confirmButtonClass"
           >
             <FontAwesomeIcon v-if="loading" :icon="['fas', 'spinner']" class="animate-spin" />
@@ -87,7 +89,7 @@ const iconColorClass = computed(() => {
 const confirmButtonClass = computed(() => {
   const variants = {
     danger: 'bg-red-600 text-white hover:bg-red-700',
-    primary: 'bg-[#b81a16] text-white hover:bg-[#9a1512]',
+    primary: 'bg-gray-700 text-white hover:bg-gray-800',
     warning: 'bg-amber-600 text-white hover:bg-amber-700'
   }
   return variants[props.variant]
