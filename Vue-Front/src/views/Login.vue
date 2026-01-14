@@ -1,149 +1,124 @@
 /**
  * Smart Classroom AI - Login/Register View
+ * Estilo inspirado en Moodle
  */
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#b81a16] via-[#9a1512] to-[#7d120f] py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-2xl p-8">
-      <!-- Logo and Title -->
-      <div class="text-center">
-        <div class="text-6xl mb-4 text-[#b81a16]">
+  <div class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#d63031] text-white text-4xl mb-4">
           <FontAwesomeIcon :icon="['fas', 'graduation-cap']" />
         </div>
-        <h1 class="text-3xl font-extrabold text-gray-900">
+        <h1 class="text-2xl font-bold text-gray-800">
           Smart Classroom AI
         </h1>
-        <h2 class="mt-2 text-xl font-semibold text-gray-700">
-          {{ isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta' }}
-        </h2>
-        <p class="mt-2 text-sm text-gray-600">
-          {{ isLoginMode ? 'Accede a tu cuenta de profesor' : 'Regístrate como profesor' }}
+        <p class="mt-1 text-gray-500">
+          Plataforma de asistencia inteligente
         </p>
       </div>
 
-      <!-- Error Message -->
-      <div
-        v-if="errorMessage"
-        class="bg-red-50 border-l-4 border-red-500 p-4 rounded"
-      >
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm text-red-700">{{ errorMessage }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Success Message -->
-      <div
-        v-if="successMessage"
-        class="bg-green-50 border-l-4 border-green-500 p-4 rounded"
-      >
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm text-green-700">{{ successMessage }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="mt-8 space-y-6">
-        <!-- Full Name (Only for Register) -->
-        <div v-if="!isLoginMode">
-          <label for="fullName" class="block text-sm font-medium text-gray-700">
-            Nombre Completo
-          </label>
-          <input
-            id="fullName"
-            v-model="formData.fullName"
-            type="text"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#b81a16] focus:border-[#b81a16] sm:text-sm"
-            placeholder="Ej: Juan Pérez García"
-          />
+      <!-- Card -->
+      <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h2 class="text-lg font-semibold text-[#d63031]">
+            {{ isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta' }}
+          </h2>
         </div>
 
-        <!-- Email -->
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">
-            Correo Electrónico
-          </label>
-          <input
-            id="email"
-            v-model="formData.email"
-            type="email"
-            required
-            autocomplete="email"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#b81a16] focus:border-[#b81a16] sm:text-sm"
-            placeholder="profesor@universidad.edu"
-          />
-        </div>
-
-        <!-- Password -->
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">
-            Contraseña
-          </label>
-          <input
-            id="password"
-            v-model="formData.password"
-            type="password"
-            required
-            autocomplete="current-password"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#b81a16] focus:border-[#b81a16] sm:text-sm"
-            :placeholder="isLoginMode ? 'Tu contraseña' : 'Mínimo 6 caracteres'"
-          />
-        </div>
-
-        <!-- Submit Button -->
-        <div>
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#b81a16] hover:bg-[#9a1512] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b81a16] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        <div class="p-6">
+          <!-- Error Message -->
+          <div
+            v-if="errorMessage"
+            class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2"
           >
-            <svg
-              v-if="isLoading"
-              class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            {{ isLoading ? 'Procesando...' : (isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta') }}
-          </button>
-        </div>
-      </form>
+            <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" class="mt-0.5 text-red-500" />
+            {{ errorMessage }}
+          </div>
 
-      <!-- Toggle Login/Register -->
-      <div class="text-center">
-        <p class="text-sm text-gray-600">
-          {{ isLoginMode ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?' }}
+          <!-- Success Message -->
+          <div
+            v-if="successMessage"
+            class="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-start gap-2"
+          >
+            <FontAwesomeIcon :icon="['fas', 'circle-check']" class="mt-0.5 text-green-500" />
+            {{ successMessage }}
+          </div>
+
+          <!-- Form -->
+          <form @submit.prevent="handleSubmit" class="space-y-4">
+            <!-- Full Name (Only for Register) -->
+            <div v-if="!isLoginMode">
+              <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+                Nombre Completo
+              </label>
+              <input
+                id="fullName"
+                v-model="formData.fullName"
+                type="text"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#d63031] focus:border-transparent"
+                placeholder="Ej: Juan Pérez García"
+              />
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                Correo Electrónico
+              </label>
+              <input
+                id="email"
+                v-model="formData.email"
+                type="email"
+                required
+                autocomplete="email"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#d63031] focus:border-transparent"
+                placeholder="profesor@universidad.edu"
+              />
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                Contraseña
+              </label>
+              <input
+                id="password"
+                v-model="formData.password"
+                type="password"
+                required
+                autocomplete="current-password"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#d63031] focus:border-transparent"
+                :placeholder="isLoginMode ? 'Tu contraseña' : 'Mínimo 6 caracteres'"
+              />
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              :disabled="isLoading"
+              class="w-full py-3 bg-[#d63031] text-white rounded hover:bg-[#c0292a] focus:outline-none focus:ring-2 focus:ring-[#d63031] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <FontAwesomeIcon v-if="isLoading" :icon="['fas', 'spinner']" class="animate-spin" />
+              {{ isLoading ? 'Procesando...' : (isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta') }}
+            </button>
+          </form>
+        </div>
+
+        <!-- Toggle Login/Register -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 text-center text-sm">
+          <span class="text-gray-600">
+            {{ isLoginMode ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?' }}
+          </span>
           <button
             @click="toggleMode"
             type="button"
-            class="font-medium text-[#b81a16] hover:text-[#9a1512] ml-1"
+            class="ml-1 font-medium text-[#d63031] hover:underline"
           >
             {{ isLoginMode ? 'Regístrate aquí' : 'Inicia sesión' }}
           </button>
-        </p>
-      </div>
-
-      <!-- Additional Info -->
-      <div class="text-center pt-4 border-t border-gray-200">
-        <p class="text-xs text-gray-500">
-          Plataforma de asistencia inteligente con análisis de emociones
-        </p>
+        </div>
       </div>
     </div>
   </div>
@@ -156,7 +131,7 @@ import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
 const route = useRoute()
-const { signIn, signUp, isAdmin } = useAuth()
+const { signIn, signUp } = useAuth()
 
 // Email del admin para mostrar mensaje especial
 const ADMIN_EMAIL = 'secretaria@uleam.com'

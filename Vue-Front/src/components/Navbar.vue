@@ -16,8 +16,8 @@
           </router-link>
         </div>
 
-        <!-- Navigation Links (Desktop) -->
-        <div class="hidden md:flex items-center space-x-1">
+        <!-- Navigation Links (Desktop) - Solo visible cuando está autenticado -->
+        <div v-if="isAuthenticated" class="hidden md:flex items-center space-x-1">
           <router-link
             v-for="link in navLinks"
             :key="link.path"
@@ -34,8 +34,8 @@
           </router-link>
         </div>
 
-        <!-- User Menu -->
-        <div class="flex items-center space-x-4">
+        <!-- User Menu - Solo visible cuando está autenticado -->
+        <div v-if="isAuthenticated" class="flex items-center space-x-4">
           <div class="hidden sm:flex items-center space-x-3">
             <div class="text-right">
               <p class="text-sm font-semibold text-white">
@@ -67,11 +67,22 @@
             />
           </button>
         </div>
+
+        <!-- Login button - Solo visible cuando NO está autenticado -->
+        <div v-else>
+          <router-link
+            to="/login"
+            class="px-4 py-2 text-sm font-medium text-[#D31E19] bg-white rounded-lg hover:bg-red-50 transition-all duration-200 shadow-sm flex items-center gap-2"
+          >
+            <FontAwesomeIcon :icon="['fas', 'right-to-bracket']" />
+            Iniciar Sesión
+          </router-link>
+        </div>
       </div>
     </div>
 
-    <!-- Mobile menu -->
-    <div v-if="mobileMenuOpen" class="md:hidden border-t border-white/20">
+    <!-- Mobile menu - Solo visible cuando está autenticado -->
+    <div v-if="mobileMenuOpen && isAuthenticated" class="md:hidden border-t border-white/20">
       <div class="px-3 pt-3 pb-4 space-y-1">
         <router-link
           v-for="link in navLinks"
@@ -95,7 +106,7 @@
 
 <style scoped>
 .navbar-uleam {
-  background: linear-gradient(135deg, #D31E19 0%, #b81a16 100%);
+  background: #d63031;
 }
 </style>
 
@@ -106,7 +117,7 @@ import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
 const route = useRoute()
-const { profile, signOut } = useAuth()
+const { profile, signOut, isAuthenticated } = useAuth()
 
 const mobileMenuOpen = ref(false)
 
