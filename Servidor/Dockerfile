@@ -1,55 +1,45 @@
 # ==============================================================================
 # Smart Classroom AI - Production Dockerfile
-# Optimized for Google Cloud Run
+# Usa imagen base de TensorFlow (más rápido)
 # ==============================================================================
 
-FROM python:3.10-slim
+FROM tensorflow/tensorflow:2.15.0
 
 # Metadata
 LABEL maintainer="Smart Classroom Team"
 LABEL version="1.0"
-LABEL description="AI Engine for facial recognition and emotion analysis"
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    TF_CPP_MIN_LOG_LEVEL=3
 
-# Install system dependencies for OpenCV and TensorFlow
-# CRÍTICO: libgl1 y libglib2.0-0 son obligatorios para OpenCV
+# Install system dependencies for OpenCV
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    libgomp1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first (Docker layer caching)
-COPY requirements.txt .
-
-# Install Python dependencies
+# Copy and install requirements (sin TensorFlow, ya viene en la imagen base)
+COPY requirements.docker.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY ./app ./app
-COPY ./weights ./weights
 
-# Create non-root user for security
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
-
-# Expose port (Cloud Run uses PORT env variable)
+# Expose port
 EXPOSE 8080
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/health')"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
