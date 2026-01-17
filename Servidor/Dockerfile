@@ -1,9 +1,9 @@
 # ==============================================================================
 # Smart Classroom AI - Production Dockerfile
-# Usa imagen base de TensorFlow (más rápido)
+# Usa imagen base de Python (evita conflictos de versiones)
 # ==============================================================================
 
-FROM tensorflow/tensorflow:2.15.0
+FROM python:3.11-slim
 
 # Metadata
 LABEL maintainer="Smart Classroom Team"
@@ -14,7 +14,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     TF_CPP_MIN_LOG_LEVEL=3
 
-# Install system dependencies for OpenCV
+# Install system dependencies for OpenCV and TensorFlow
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxext6 \
     libxrender-dev \
     curl \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -30,10 +31,9 @@ WORKDIR /app
 # Upgrade pip first
 RUN pip install --upgrade pip
 
-# Copy and install requirements (sin TensorFlow, ya viene en la imagen base)
-# --ignore-installed: Ignora paquetes del sistema que causan conflictos (ej: blinker)
+# Copy and install requirements
 COPY requirements.docker.txt ./requirements.txt
-RUN pip install --no-cache-dir --ignore-installed -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download DeepFace models during build (NOT at runtime)
 # This makes the image larger but eliminates cold start delays
