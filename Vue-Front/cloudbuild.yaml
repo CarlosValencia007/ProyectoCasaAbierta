@@ -1,0 +1,82 @@
+# ==============================================================================
+# Smart Classroom AI - Frontend Cloud Build Configuration
+# Builds and deploys the Vue.js frontend to Cloud Run
+# ==============================================================================
+
+steps:
+  # Step 1: Build the Docker image with build arguments
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_BASE_URL=${_VITE_API_BASE_URL}'
+      - '--build-arg'
+      - 'VITE_SUPABASE_URL=${_VITE_SUPABASE_URL}'
+      - '--build-arg'
+      - 'VITE_SUPABASE_ANON_KEY=${_VITE_SUPABASE_ANON_KEY}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:latest'
+      - '.'
+    dir: 'ProyectoCasaAbierta/Vue-Front'
+
+  # Step 2: Push the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:$COMMIT_SHA'
+    dir: 'ProyectoCasaAbierta/Vue-Front'
+
+  # Step 3: Push latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:latest'
+    dir: 'ProyectoCasaAbierta/Vue-Front'
+
+  # Step 4: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'smart-classroom-frontend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--memory'
+      - '256Mi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '60'
+      - '--concurrency'
+      - '80'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--allow-unauthenticated'
+
+# Substitution variables - CONFIGURE THESE
+substitutions:
+  _REGION: 'us-central1'
+  _VITE_API_BASE_URL: 'https://smart-classroom-backend-XXXXX.run.app/api/v1'
+  _VITE_SUPABASE_URL: 'https://dusciyonacflolbtweob.supabase.co'
+  _VITE_SUPABASE_ANON_KEY: 'your-supabase-anon-key'
+
+# Store images in Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:latest'
+
+# Build options
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Timeout for the build (5 minutes should be enough for frontend)
+timeout: '300s'
