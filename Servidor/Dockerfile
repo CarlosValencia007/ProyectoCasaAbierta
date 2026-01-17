@@ -35,6 +35,13 @@ RUN pip install --upgrade pip
 COPY requirements.docker.txt ./requirements.txt
 RUN pip install --no-cache-dir --ignore-installed -r requirements.txt
 
+# Pre-download DeepFace models during build (NOT at runtime)
+# This makes the image larger but eliminates cold start delays
+RUN python -c "from deepface import DeepFace; \
+    DeepFace.build_model('Facenet512'); \
+    DeepFace.build_model('retinaface'); \
+    print('Models downloaded successfully')"
+
 # Copy application code
 COPY ./app ./app
 
