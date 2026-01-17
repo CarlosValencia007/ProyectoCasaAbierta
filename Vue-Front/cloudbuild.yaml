@@ -19,21 +19,21 @@ steps:
       - '-t'
       - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:latest'
       - '.'
-    dir: 'ProyectoCasaAbierta/Vue-Front'
+    dir: 'Vue-Front'
 
   # Step 2: Push the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:$COMMIT_SHA'
-    dir: 'ProyectoCasaAbierta/Vue-Front'
+    dir: 'Vue-Front'
 
   # Step 3: Push latest tag
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - 'gcr.io/$PROJECT_ID/smart-classroom-frontend:latest'
-    dir: 'ProyectoCasaAbierta/Vue-Front'
+    dir: 'Vue-Front'
 
   # Step 4: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
