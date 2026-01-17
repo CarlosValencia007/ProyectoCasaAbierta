@@ -37,17 +37,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"✗ Database connection error: {str(e)}")
     
-    # Pre-carga del modelo de IA (SOLUCIÓN AL COLD START)
-    logger.info("⏳ Cargando modelos de IA en memoria... esto puede tardar.")
+    # Los modelos de DeepFace ya están pre-descargados en la imagen Docker
+    # Solo los cargamos en memoria (esto es rápido, ~10-30 segundos)
+    logger.info("⏳ Cargando modelos de IA en memoria...")
     try:
         from deepface import DeepFace
-        # Forzamos la construcción del modelo en memoria RAM
-        # Esto descarga los pesos (500MB) si no existen y los deja cargados
         DeepFace.build_model(settings.FACE_RECOGNITION_MODEL)
-        logger.info("✅ Modelos cargados en RAM. El servidor volará 🚀")
+        logger.info("✅ Modelos cargados en RAM")
     except Exception as e:
-        logger.error(f"❌ Error cargando modelos de IA: {str(e)}")
-        logger.warning("⚠ El servidor funcionará pero tendrá cold start en cada petición")
+        logger.warning(f"⚠ Modelos se cargarán bajo demanda: {str(e)}")
     
     logger.info("="*80)
     logger.info("🚀 Application startup complete")
