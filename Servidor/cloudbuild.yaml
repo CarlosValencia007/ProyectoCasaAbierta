@@ -47,9 +47,7 @@ steps:
       - '4'
       - '--timeout'
       - '300'
-      - '--startup-cpu-boost'
-      - '--startup-timeout'
-      - '600'
+      - '--cpu-boost'
       - '--concurrency'
       - '10'
       - '--min-instances'
@@ -59,6 +57,8 @@ steps:
       - '--allow-unauthenticated'
       - '--set-env-vars'
       - 'ENVIRONMENT=production,DEBUG=false'
+      - '--port'
+      - '8080'
 
 # Substitution variables (can be overridden)
 substitutions:
