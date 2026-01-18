@@ -59,8 +59,11 @@ async def analyze_emotion(
         
         # Save to database only if both class_id and student_id are provided
         # (student_id must exist in students table due to foreign key constraint)
+        db_save_success = False
+        db_save_error = None
         if class_id and student_id:
             try:
+                logger.info(f"💾 Guardando emoción en BD: student_id={student_id}, class_id={class_id}, emotion={emotion_result['dominant_emotion']}")
                 await emotion_crud.record_emotion(
                     student_id=student_id,
                     class_id=class_id,
@@ -68,16 +71,23 @@ async def analyze_emotion(
                     confidence=emotion_result["confidence"],
                     emotion_scores=emotion_result["all_emotions"]
                 )
+                db_save_success = True
+                logger.info(f"✅ Emoción guardada exitosamente en BD")
             except Exception as db_error:
-                logger.warning(f"Failed to save emotion to database: {str(db_error)}")
+                db_save_error = str(db_error)
+                logger.error(f"❌ Failed to save emotion to database: {db_save_error}")
                 # Continue anyway - the analysis was successful even if DB save failed
+        else:
+            logger.warning(f"⚠️ No se guardó emoción: class_id={class_id}, student_id={student_id}")
         
         return BaseResponse(
             success=True,
             message="Emotion analyzed successfully",
             data={
                 "emotions": emotions_list,
-                "raw_data": emotion_result
+                "raw_data": emotion_result,
+                "saved_to_db": db_save_success,
+                "db_error": db_save_error
             }
         )
     

@@ -8,18 +8,8 @@
       <PageHeader
         title="Gestion de Clases"
         icon="calendar-days"
-        description="Crea y administra sesiones de clase"
-      >
-        <template #action>
-          <button
-            @click="showCreateModal = true"
-            class="px-6 py-3 bg-[#b81a16] text-white rounded-lg hover:bg-[#9a1512] transition-colors duration-200 font-medium flex items-center gap-2"
-          >
-            <FontAwesomeIcon :icon="['fas', 'plus']" />
-            Nueva Clase
-          </button>
-        </template>
-      </PageHeader>
+        description="Vista general de todas las sesiones de clase"
+      />
 
       <!-- Loading State -->
       <LoadingSpinner v-if="loading" />
@@ -29,10 +19,7 @@
         v-else-if="classes.length === 0"
         icon="book"
         title="No hay clases creadas"
-        description="Crea tu primera sesion de clase"
-        action-text="Nueva Clase"
-        action-icon="plus"
-        @action="showCreateModal = true"
+        description="Para crear clases, ve a Dashboard y selecciona una materia, luego usa el boton 'Iniciar Sesion'"
       />
 
       <!-- Classes List -->
@@ -161,110 +148,6 @@
         </div>
       </div>
 
-      <!-- Create Class Modal -->
-      <div
-        v-if="showCreateModal"
-        class="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4 z-50"
-        @click.self="showCreateModal = false"
-      >
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <FontAwesomeIcon :icon="['fas', 'calendar-plus']" class="text-[#b81a16]" />
-            Nueva Sesión de Clase
-          </h2>
-
-          <form @submit.prevent="createClass">
-            <!-- Nombre de la Sesión -->
-            <div class="mb-4">
-              <label for="className" class="block text-sm font-medium text-gray-700 mb-2">
-                Nombre de la Sesión <span class="text-red-500">*</span>
-              </label>
-              <input
-                id="className"
-                v-model="newClassName"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b81a16]"
-                placeholder="Ej: Clase de Introducción"
-              />
-            </div>
-
-            <!-- Nota informativa -->
-            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p class="text-sm text-blue-700">
-                ℹ️ Para crear clases con estudiantes específicos, usa el botón "Iniciar Sesión" desde la vista de cada curso.
-              </p>
-            </div>
-
-            <!-- Fecha -->
-            <div class="mb-4">
-              <label for="classDate" class="block text-sm font-medium text-gray-700 mb-2">
-                Fecha <span class="text-red-500">*</span>
-              </label>
-              <input
-                id="classDate"
-                v-model="newClassDate"
-                type="date"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b81a16]"
-              />
-            </div>
-
-            <!-- Hora de Inicio -->
-            <div class="mb-4">
-              <label for="startTime" class="block text-sm font-medium text-gray-700 mb-2">
-                Hora de Inicio <span class="text-red-500">*</span>
-              </label>
-              <input
-                id="startTime"
-                v-model="newStartTime"
-                type="time"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b81a16]"
-              />
-            </div>
-
-            <!-- Hora de Fin -->
-            <div class="mb-4">
-              <label for="endTime" class="block text-sm font-medium text-gray-700 mb-2">
-                Hora de Fin <span class="text-red-500">*</span>
-              </label>
-              <input
-                id="endTime"
-                v-model="newEndTime"
-                type="time"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b81a16]"
-              />
-            </div>
-
-            <AlertMessage 
-              v-if="createError" 
-              type="error" 
-              :message="createError" 
-              class="mb-4"
-            />
-
-            <div class="flex gap-3">
-              <button
-                type="button"
-                @click="showCreateModal = false"
-                class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                :disabled="creating"
-                class="flex-1 px-4 py-2 bg-[#b81a16] text-white rounded-lg hover:bg-[#9a1512] transition-colors duration-200 font-medium disabled:opacity-50"
-              >
-                {{ creating ? 'Creando...' : 'Crear Sesión' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
       <!-- End Class Confirmation Modal -->
       <ConfirmModal
         :show="!!classToEnd"
@@ -311,19 +194,9 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
 
 const loading = ref(true)
 const classes = ref<ClassSession[]>([])
-const showCreateModal = ref(false)
-const newClassName = ref('')
-// Inicializar con fecha y hora actual
-const today = new Date()
-const newClassDate = ref(today.toISOString().split('T')[0])
-const newStartTime = ref(today.toTimeString().slice(0, 5))
-const newEndTime = ref('')
-const creating = ref(false)
-const createError = ref('')
 const classToEnd = ref<ClassSession | null>(null)
 const ending = ref(false)
 const classToDelete = ref<ClassSession | null>(null)
@@ -388,47 +261,6 @@ const loadClasses = async () => {
     // Error loading classes
   } finally {
     loading.value = false
-  }
-}
-
-const createClass = async () => {
-  if (!newClassName.value.trim() || !newClassDate.value || !newStartTime.value || !newEndTime.value) {
-    createError.value = 'Por favor completa todos los campos'
-    return
-  }
-
-  // Validar que la hora de fin sea posterior a la hora de inicio
-  const start = new Date(`${newClassDate.value}T${newStartTime.value}`)
-  const end = new Date(`${newClassDate.value}T${newEndTime.value}`)
-  
-  if (end <= start) {
-    createError.value = 'La hora de fin debe ser posterior a la hora de inicio'
-    return
-  }
-
-  creating.value = true
-  createError.value = ''
-
-  try {
-    // Clase general sin curso específico
-    await classesService.createClass({ 
-      class_name: newClassName.value,
-      session_date: newClassDate.value,
-      start_time: newStartTime.value,
-      end_time: newEndTime.value
-    })
-    await loadClasses()
-    showCreateModal.value = false
-    // Limpiar formulario y resetear a valores por defecto
-    newClassName.value = ''
-    const now = new Date()
-    newClassDate.value = now.toISOString().split('T')[0]
-    newStartTime.value = now.toTimeString().slice(0, 5)
-    newEndTime.value = ''
-  } catch (error: any) {
-    createError.value = error.response?.data?.detail || 'Error al crear la clase'
-  } finally {
-    creating.value = false
   }
 }
 

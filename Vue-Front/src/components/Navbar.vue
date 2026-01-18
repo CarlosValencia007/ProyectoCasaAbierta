@@ -123,7 +123,6 @@ const mobileMenuOpen = ref(false)
 
 const navLinks = [
   { name: 'Dashboard', path: '/dashboard', icon: 'gauge-high' },
-  { name: 'Clases', path: '/classes', icon: 'calendar-days' },
   { name: 'Asistencia', path: '/attendance', icon: 'clipboard-check' },
   { name: 'Emociones', path: '/emotions', icon: 'face-smile' }
 ]

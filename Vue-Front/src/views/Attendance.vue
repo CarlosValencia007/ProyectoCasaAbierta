@@ -481,13 +481,16 @@ const captureAndVerify = async () => {
           const emotionResult = await emotionsService.analyzeEmotion(emotionFormData)
           console.log('✅ Emoción detectada:', emotionResult)
           
-          if (emotionResult?.emotions && emotionResult.emotions.length > 0) {
-            const firstEmotion = emotionResult.emotions[0]
+          // La respuesta tiene estructura: { success, message, data: { emotions: [...], raw_data: {...} } }
+          const emotions = emotionResult?.data?.emotions || emotionResult?.emotions
+          if (emotions && emotions.length > 0) {
+            const firstEmotion = emotions[0]
             if (firstEmotion) {
               detectedEmotion.value = {
                 emotion: firstEmotion.emotion,
                 confidence: firstEmotion.confidence
               }
+              console.log('🎭 Emoción guardada en UI:', detectedEmotion.value)
             }
           }
         } catch (emotionError) {

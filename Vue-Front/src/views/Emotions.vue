@@ -25,7 +25,7 @@
           >
             <option value="">Seleccionar clase...</option>
             <option v-for="classItem in activeClasses" :key="classItem.id" :value="classItem.id">
-              {{ classItem.class_name }}
+              {{ classItem.class_name }} ({{ formatClassDate(classItem.start_time) }})
             </option>
           </select>
         </div>
@@ -102,6 +102,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { classesService } from '@/services/classes.service'
 import { emotionsService } from '@/services/emotions.service'
+import { supabase } from '@/services/supabase'
 import type { ClassSession, EmotionLog } from '@/types'
 import PageHeader from '@/components/PageHeader.vue'
 
@@ -110,6 +111,9 @@ const route = useRoute()
 const activeClasses = ref<ClassSession[]>([])
 const selectedClassId = ref<number | string>('')
 const emotionLogs = ref<EmotionLog[]>([])
+
+// Obtener courseId de los parámetros de la ruta (si viene desde CourseDetail)
+const courseId = computed(() => route.params.courseId as string | undefined)
 
 const emotionStats = computed(() => {
   if (emotionLogs.value.length === 0) return null
@@ -125,8 +129,27 @@ const emotionStats = computed(() => {
 
 const loadActiveClasses = async () => {
   try {
-    activeClasses.value = await classesService.getActiveClasses()
+    // Si hay courseId en la ruta, filtrar por materia
+    if (courseId.value) {
+      // Cargar todas las sesiones de esta materia
+      const { data: allSessionsData } = await supabase
+        .from('class_sessions')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      // Filtrar por course_id en metadata
+      const filteredSessions = (allSessionsData || []).filter(session => {
+        const metadata = session.metadata as { course_id?: string } | null
+        return metadata?.course_id === courseId.value
+      })
+      
+      activeClasses.value = filteredSessions
+    } else {
+      // Sin courseId: cargar todas las clases activas (comportamiento original)
+      activeClasses.value = await classesService.getActiveClasses()
+    }
     
+    // Seleccionar clase inicial
     if (route.query.class_id) {
       selectedClassId.value = route.query.class_id as string
     } else if (activeClasses.value.length > 0 && activeClasses.value[0]) {
@@ -179,6 +202,18 @@ const formatTime = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
+  }).format(date)
+}
+
+const formatClassDate = (dateString: string) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('es-EC', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Guayaquil'
   }).format(date)
 }
 

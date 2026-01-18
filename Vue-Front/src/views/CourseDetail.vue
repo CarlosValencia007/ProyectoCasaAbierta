@@ -203,10 +203,6 @@
                 :key="student.student_id"
                 class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 group"
               >
-                <div class="h-12 w-12 rounded-full bg-[#b81a16] flex items-center justify-center text-white font-bold mr-3 overflow-hidden">
-                  <img v-if="student.photo_url" :src="student.photo_url" :alt="student.name" class="w-full h-full object-cover" />
-                  <span v-else>{{ getInitials(student.name) }}</span>
-                </div>
                 <div class="flex-1">
                   <p class="font-semibold text-gray-900">{{ student.name }}</p>
                   <p class="text-xs text-gray-600">Cédula: {{ student.student_id }}</p>
@@ -241,20 +237,77 @@
               <div
                 v-for="session in sessions"
                 :key="session.id"
-                class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                class="p-4 bg-gray-50 rounded-lg border border-gray-200"
               >
-                <div>
-                  <p class="font-semibold text-gray-900">{{ session.class_name }}</p>
-                  <p class="text-sm text-gray-600">{{ formatDateTime(session.start_time) }}</p>
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <p class="font-semibold text-gray-900">{{ session.class_name }}</p>
+                    <p class="text-sm text-gray-600">{{ formatDateTime(session.start_time) }}</p>
+                  </div>
+                  <span
+                    :class="[
+                      'px-3 py-1 text-sm font-medium rounded',
+                      isSessionActive(session) ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'
+                    ]"
+                  >
+                    {{ isSessionActive(session) ? 'Activa' : 'Finalizada' }}
+                  </span>
                 </div>
-                <span
-                  :class="[
-                    'px-3 py-1 text-sm font-medium rounded',
-                    session.end_time ? 'bg-gray-200 text-gray-700' : 'bg-green-100 text-green-700'
-                  ]"
-                >
-                  {{ session.end_time ? 'Finalizada' : 'Activa' }}
-                </span>
+                
+                <!-- Botones de acción -->
+                <div class="flex flex-wrap gap-2">
+                  <!-- Botones para sesiones activas -->
+                  <template v-if="isSessionActive(session)">
+                    <router-link
+                      :to="`/attendance?class_id=${session.id}`"
+                      class="px-3 py-1.5 bg-[#b81a16] text-white text-sm rounded-lg hover:bg-[#9a1512] inline-flex items-center gap-1"
+                    >
+                      <FontAwesomeIcon :icon="['fas', 'clipboard-check']" />
+                      Tomar Asistencia
+                    </router-link>
+                    <router-link
+                      :to="`/emotions?class_id=${session.id}`"
+                      class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 inline-flex items-center gap-1"
+                    >
+                      <FontAwesomeIcon :icon="['fas', 'face-smile']" />
+                      Emociones
+                    </router-link>
+                    <button
+                      @click="confirmEndSession(session)"
+                      class="px-3 py-1.5 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 inline-flex items-center gap-1"
+                    >
+                      <FontAwesomeIcon :icon="['fas', 'stop']" />
+                      Finalizar
+                    </button>
+                  </template>
+                  
+                  <!-- Botones para sesiones finalizadas -->
+                  <template v-else>
+                    <router-link
+                      :to="`/attendance?class_id=${session.id}`"
+                      class="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 inline-flex items-center gap-1"
+                    >
+                      <FontAwesomeIcon :icon="['fas', 'eye']" />
+                      Ver Asistencia
+                    </router-link>
+                    <router-link
+                      :to="`/emotions?class_id=${session.id}`"
+                      class="px-3 py-1.5 bg-purple-400 text-white text-sm rounded-lg hover:bg-purple-500 inline-flex items-center gap-1"
+                    >
+                      <FontAwesomeIcon :icon="['fas', 'chart-bar']" />
+                      Ver Emociones
+                    </router-link>
+                  </template>
+                  
+                  <!-- Botón eliminar siempre visible -->
+                  <button
+                    @click="confirmDeleteSession(session)"
+                    class="px-3 py-1.5 bg-red-100 text-red-600 text-sm rounded-lg hover:bg-red-200 inline-flex items-center gap-1"
+                  >
+                    <FontAwesomeIcon :icon="['fas', 'trash']" />
+                    Eliminar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -481,10 +534,10 @@
             />
           </div>
 
-          <!-- Hora de Fin (solo lectura si hay clase programada) -->
+          <!-- Hora de Fin (opcional - si no se pone, la clase queda activa) -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Hora de Fin *
+              Hora de Fin <span class="text-gray-400 font-normal">(opcional)</span>
             </label>
             <input
               v-model="sessionForm.endTime"
@@ -494,8 +547,10 @@
                 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b81a16] focus:border-transparent',
                 sessionForm.selectedSchedule ? 'bg-gray-100 cursor-not-allowed' : ''
               ]"
-              required
             />
+            <p class="text-xs text-gray-500 mt-1">
+              Si no configuras hora de fin, la clase quedará activa hasta que la finalices manualmente
+            </p>
           </div>
 
           <!-- Botones -->
@@ -677,6 +732,76 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal: Confirmar Finalizar Sesión -->
+    <div
+      v-if="sessionToEnd"
+      class="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50"
+      @click.self="sessionToEnd = null"
+    >
+      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div class="w-10 h-10 flex items-center justify-center bg-orange-100 text-orange-600 rounded-full">
+            <FontAwesomeIcon :icon="['fas', 'stop']" />
+          </div>
+          Finalizar Sesión
+        </h3>
+        <p class="text-gray-600 mb-6">
+          ¿Estás seguro de que deseas finalizar la sesión <strong>{{ sessionToEnd.class_name }}</strong>?
+          Esta acción marcará la clase como terminada.
+        </p>
+        <div class="flex gap-3">
+          <button
+            @click="sessionToEnd = null"
+            class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="endSession"
+            :disabled="endingSession"
+            class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+          >
+            {{ endingSession ? 'Finalizando...' : 'Finalizar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Confirmar Eliminar Sesión -->
+    <div
+      v-if="sessionToDelete"
+      class="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50"
+      @click.self="sessionToDelete = null"
+    >
+      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div class="w-10 h-10 flex items-center justify-center bg-red-100 text-red-600 rounded-full">
+            <FontAwesomeIcon :icon="['fas', 'trash']" />
+          </div>
+          Eliminar Sesión
+        </h3>
+        <p class="text-gray-600 mb-6">
+          ¿Estás seguro de que deseas eliminar la sesión <strong>{{ sessionToDelete.class_name }}</strong>?
+          Esta acción no se puede deshacer.
+        </p>
+        <div class="flex gap-3">
+          <button
+            @click="sessionToDelete = null"
+            class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="deleteSession"
+            :disabled="deletingSession"
+            class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+          >
+            {{ deletingSession ? 'Eliminando...' : 'Eliminar' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -728,6 +853,11 @@ const filteredAvailableStudents = computed(() => {
 })
 
 const showCreateSessionModal = ref(false)
+const sessionToEnd = ref<ClassSession | null>(null)
+const sessionToDelete = ref<ClassSession | null>(null)
+const endingSession = ref(false)
+const deletingSession = ref(false)
+
 const sessionForm = reactive<{
   name: string
   date: string
@@ -741,6 +871,16 @@ const sessionForm = reactive<{
   endTime: '',
   selectedSchedule: null
 })
+
+// Resetear formulario de sesión
+const resetSessionForm = () => {
+  const now = new Date()
+  sessionForm.name = ''
+  sessionForm.date = now.toISOString().split('T')[0]
+  sessionForm.startTime = now.toTimeString().slice(0, 5)
+  sessionForm.endTime = ''
+  sessionForm.selectedSchedule = null
+}
 
 // Clases programadas para hoy
 const todayScheduledClasses = computed(() => {
@@ -766,14 +906,38 @@ const currentCode = ref('')
 const codeRemainingSeconds = ref(0)
 let codeRefreshInterval: ReturnType<typeof setInterval> | null = null
 
+// Verificar si una sesión está activa
+const isSessionActive = (session: ClassSession): boolean => {
+  const now = new Date()
+  
+  // Parsear start_time
+  if (!session.start_time) return false
+  const startTime = new Date(session.start_time)
+  if (isNaN(startTime.getTime())) return false
+  
+  // Si aún no ha comenzado
+  if (now < startTime) return false
+  
+  // Verificar end_time - puede ser null, undefined, o string vacío
+  const endTimeValue = session.end_time
+  if (!endTimeValue || endTimeValue === '' || endTimeValue === 'null') {
+    // Sin hora de fin = activa indefinidamente (ya comenzó)
+    return true
+  }
+  
+  const endTime = new Date(endTimeValue)
+  if (isNaN(endTime.getTime())) {
+    // end_time inválido = tratar como activa
+    return true
+  }
+  
+  // Activa si: ahora < fin
+  return now < endTime
+}
+
 // Sesiones activas del curso actual
 const activeSessions = computed(() => {
-  const now = new Date()
-  return sessions.value.filter(session => {
-    const startTime = new Date(session.start_time)
-    const endTime = new Date(session.end_time)
-    return startTime <= now && now < endTime
-  })
+  return sessions.value.filter(session => isSessionActive(session))
 })
 
 const stats = ref({
@@ -811,7 +975,6 @@ const loadCourseData = async () => {
       const metadata = session.metadata as { course_id?: string } | null
       return metadata?.course_id === courseId
     })
-    
     stats.value.totalSessions = sessions.value.length
 
     // Cargar estadísticas reales del curso (usando UUID, no int)
@@ -929,16 +1092,21 @@ const createSession = async () => {
   try {
     loading.value = true
     
-    // Crear la sesión usando el servicio de clases con formato simple
-    const response = await classesService.createClass({
+    // Crear la sesión usando el servicio de clases con course_id para filtrado
+    // Solo enviar end_time si tiene valor (para que la clase quede activa indefinidamente)
+    const classData: any = {
       class_name: sessionForm.name.trim(),
       session_date: sessionForm.date,
       start_time: sessionForm.startTime,
-      end_time: sessionForm.endTime || '',
-      instructor: undefined,
-      room: undefined,
       course_id: courseId
-    })
+    }
+    
+    // Solo agregar end_time si el usuario lo configuró
+    if (sessionForm.endTime && sessionForm.endTime.trim() !== '') {
+      classData.end_time = sessionForm.endTime
+    }
+    
+    const response = await classesService.createClass(classData)
 
     if (response.success || response.class_id) {
       ElNotification({
@@ -947,6 +1115,8 @@ const createSession = async () => {
         type: 'success'
       })
       
+      // Resetear formulario para poder crear más sesiones
+      resetSessionForm()
       showCreateSessionModal.value = false
       
       // Recargar los datos
@@ -966,6 +1136,70 @@ const createSession = async () => {
     })
   } finally {
     loading.value = false
+  }
+}
+
+// Confirmar finalizar sesión
+const confirmEndSession = (session: ClassSession) => {
+  sessionToEnd.value = session
+}
+
+// Finalizar sesión
+const endSession = async () => {
+  if (!sessionToEnd.value) return
+  
+  endingSession.value = true
+  try {
+    // Usar class_id (UUID) en lugar de id (número)
+    const classId = sessionToEnd.value.class_id || sessionToEnd.value.id.toString()
+    await classesService.endClass(classId)
+    ElNotification({
+      title: 'Éxito',
+      message: `Sesión "${sessionToEnd.value.class_name}" finalizada`,
+      type: 'success'
+    })
+    sessionToEnd.value = null
+    await loadCourseData()
+  } catch (error: any) {
+    ElNotification({
+      title: 'Error',
+      message: error.response?.data?.detail || 'Error al finalizar la sesión',
+      type: 'error'
+    })
+  } finally {
+    endingSession.value = false
+  }
+}
+
+// Confirmar eliminar sesión
+const confirmDeleteSession = (session: ClassSession) => {
+  sessionToDelete.value = session
+}
+
+// Eliminar sesión
+const deleteSession = async () => {
+  if (!sessionToDelete.value) return
+  
+  deletingSession.value = true
+  try {
+    // Usar class_id (UUID) en lugar de id (número)
+    const classId = sessionToDelete.value.class_id || sessionToDelete.value.id.toString()
+    await classesService.deleteClass(classId)
+    ElNotification({
+      title: 'Éxito',
+      message: `Sesión "${sessionToDelete.value.class_name}" eliminada`,
+      type: 'success'
+    })
+    sessionToDelete.value = null
+    await loadCourseData()
+  } catch (error: any) {
+    ElNotification({
+      title: 'Error',
+      message: error.response?.data?.detail || 'Error al eliminar la sesión',
+      type: 'error'
+    })
+  } finally {
+    deletingSession.value = false
   }
 }
 
