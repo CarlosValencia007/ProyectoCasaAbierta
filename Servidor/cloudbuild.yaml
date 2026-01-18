@@ -57,7 +57,9 @@ steps:
       - '5'
       - '--allow-unauthenticated'
       - '--set-env-vars'
-      - 'ENVIRONMENT=production,DEBUG=False,LOG_LEVEL=INFO,API_HOST=0.0.0.0,API_PORT=8080,CORS_ORIGINS=*,SUPABASE_URL=https://dusciyonacflolbtweob.supabase.co,SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1c2NpeW9uYWNmbG9sYnR3ZW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMjE0NDAsImV4cCI6MjA4MTY5NzQ0MH0.1hAkjHGhYhkHp5VRj1FnVozvwBJF3NdG6i6lwr03VGA,SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1c2NpeW9uYWNmbG9sYnR3ZW9iIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjEyMTQ0MCwiZXhwIjoyMDgxNjk3NDQwfQ.cLT056f83lEdgNY16mpxdbIJnQtDj-Jrp1vjdqdiGz4,DATABASE_URL=postgresql://postgres.CasaEspacioAbierto10@db.dusciyonacflolbtweob.supabase.co:5432/postgres,SECRET_KEY=tu-secret-key-super-segura-cambiar-123'
+      - 'ENVIRONMENT=production,DEBUG=False,LOG_LEVEL=INFO,API_HOST=0.0.0.0,API_PORT=8080,CORS_ORIGINS=*'
+      - '--update-secrets'
+      - 'SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_KEY=SUPABASE_KEY:latest,SUPABASE_SERVICE_KEY=SUPABASE_SERVICE_KEY:latest,DATABASE_URL=DATABASE_URL:latest,SECRET_KEY=SECRET_KEY:latest'
       - '--port'
       - '8080'
 
