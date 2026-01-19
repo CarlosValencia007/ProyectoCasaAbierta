@@ -133,15 +133,17 @@ class QRService:
             # Get current rotating code
             code_info = self.code_service.get_current_code(class_id)
             
-            # Calculate expiry time
+            # Calculate expiry time (24 hours for testing, or class end time, whichever is later)
             end_time = datetime.fromisoformat(class_info['end_time'].replace('Z', '+00:00'))
+            now = datetime.now(ECUADOR_TZ)
+            expires_at = max(end_time, now + timedelta(hours=24))  # At least 24 hours validity
             
             # Store token
             await self._store_token(
                 token=token,
                 class_id=class_id,
                 period_number=period_number,
-                expires_at=end_time
+                expires_at=expires_at
             )
             
             # Generate QR code URL (simplified - just needs token)
