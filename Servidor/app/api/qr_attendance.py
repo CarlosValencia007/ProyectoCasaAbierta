@@ -184,11 +184,13 @@ async def validate_token(token: str):
         result = await qr_service.validate_token(token)
         
         if not result.get('valid'):
+            error_message = result.get('message', 'Token inválido')
+            logger.warning(f"Token validation failed: {token} - {error_message}")
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
                     "success": False,
-                    "message": result.get('message', 'Token inválido')
+                    "message": error_message
                 }
             )
         
