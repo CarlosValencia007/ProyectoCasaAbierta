@@ -176,33 +176,7 @@
             </div>
 
             <div v-else>
-              <!-- Selector de Período/Hora -->
-              <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <FontAwesomeIcon :icon="['fas', 'clock']" class="mr-1" />
-                  Período / Hora de Clase
-                </label>
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    v-for="period in availablePeriods"
-                    :key="period.number"
-                    @click="selectedPeriod = period.number"
-                    :class="[
-                      'px-4 py-2 rounded-lg font-medium transition-all border-2',
-                      selectedPeriod === period.number
-                        ? 'bg-[#b81a16] text-white border-[#b81a16]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-[#b81a16]'
-                    ]"
-                  >
-                    <FontAwesomeIcon :icon="['fas', 'clock']" class="mr-1" />
-                    {{ period.label }}
-                  </button>
-                </div>
-                <p class="text-xs text-gray-500 mt-2">
-                  <FontAwesomeIcon :icon="['fas', 'info-circle']" class="mr-1" />
-                  Cada período representa una hora de clase. Un estudiante puede tener diferente estado en cada período.
-                </p>
-              </div>
+              <!-- Eliminado: Selector de Período/Hora (uso simplificado por estudiante) -->
 
               <!-- Acciones rápidas -->
               <div class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
@@ -274,7 +248,7 @@
                       >
                         <input
                           type="radio"
-                          :name="`attendance-${student.student_id}-${selectedPeriod}`"
+                          :name="`attendance-${student.student_id}`"
                           value="present"
                           :checked="getManualStatus(student.student_id) === 'present'"
                           @change="setManualStatus(student.student_id, 'present')"
@@ -294,7 +268,7 @@
                       >
                         <input
                           type="radio"
-                          :name="`attendance-${student.student_id}-${selectedPeriod}`"
+                          :name="`attendance-${student.student_id}`"
                           value="late"
                           :checked="getManualStatus(student.student_id) === 'late'"
                           @change="setManualStatus(student.student_id, 'late')"
@@ -314,7 +288,7 @@
                       >
                         <input
                           type="radio"
-                          :name="`attendance-${student.student_id}-${selectedPeriod}`"
+                          :name="`attendance-${student.student_id}`"
                           value="absent"
                           :checked="getManualStatus(student.student_id) === 'absent'"
                           @change="setManualStatus(student.student_id, 'absent')"
@@ -332,7 +306,7 @@
               <div class="mt-6 pt-4 border-t border-gray-200">
                 <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
                   <div class="text-sm text-gray-600">
-                    <span class="font-medium">Período {{ selectedPeriod }}:</span>
+                    <span class="font-medium">Resumen:</span>
                     <span class="ml-2 text-green-600">{{ manualPresentCount }} presentes</span>
                     <span class="mx-1">•</span>
                     <span class="text-orange-600">{{ manualLateCount }} retrasados</span>
@@ -551,40 +525,18 @@ const enrolledStudents = ref<Student[]>([])
 const loadingStudents = ref(false)
 const detectedEmotion = ref<{emotion: string, confidence: number} | null>(null)
 
-// Variables para modo manual
-const selectedPeriod = ref(1)
-const manualAttendance = ref<Record<string, Record<number, 'present' | 'late' | 'absent'>>>({})
+// Variables para modo manual (uso simplificado por estudiante)
+const manualAttendance = ref<Record<string, 'present' | 'late' | 'absent' | null>>({})
 const savingManual = ref(false)
 
-// Períodos disponibles (configurable según duración de clase)
-const availablePeriods = computed(() => {
-  const selectedClass = activeClasses.value.find(c => c.id === Number(selectedClassId.value))
-  if (!selectedClass) return [{ number: 1, label: 'Hora 1' }]
-  
-  // Calcular períodos basados en duración de clase (1 período = 1 hora)
-  const start = new Date(selectedClass.start_time)
-  const end = new Date(selectedClass.end_time)
-  const durationHours = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60))
-  const periods = []
-  
-  for (let i = 1; i <= Math.max(1, durationHours); i++) {
-    periods.push({ number: i, label: `Hora ${i}` })
-  }
-  
-  return periods
-})
-
-// Obtener estado manual de un estudiante para el período seleccionado
+// Obtener estado manual de un estudiante (sin períodos)
 const getManualStatus = (studentId: string): 'present' | 'late' | 'absent' | null => {
-  return manualAttendance.value[studentId]?.[selectedPeriod.value] || null
+  return manualAttendance.value[studentId] ?? null
 }
 
-// Establecer estado manual de un estudiante
+// Establecer estado manual de un estudiante (sin períodos)
 const setManualStatus = (studentId: string, status: 'present' | 'late' | 'absent') => {
-  if (!manualAttendance.value[studentId]) {
-    manualAttendance.value[studentId] = {}
-  }
-  manualAttendance.value[studentId][selectedPeriod.value] = status
+  manualAttendance.value[studentId] = status
 }
 
 // Marcar todos los estudiantes con un estado
@@ -594,16 +546,16 @@ const markAllAs = (status: 'present' | 'late' | 'absent') => {
   })
 }
 
-// Limpiar todos los estados manuales del período actual
+// Limpiar todos los estados manuales
 const clearAllManual = () => {
   enrolledStudents.value.forEach(student => {
-    if (manualAttendance.value[student.student_id]) {
-      delete manualAttendance.value[student.student_id][selectedPeriod.value]
+    if (manualAttendance.value[student.student_id] !== undefined) {
+      delete manualAttendance.value[student.student_id]
     }
   })
 }
 
-// Contadores para el período actual
+// Contadores (uso simplificado por estudiante)
 const manualPresentCount = computed(() => {
   return enrolledStudents.value.filter(s => getManualStatus(s.student_id) === 'present').length
 })
@@ -652,8 +604,7 @@ const saveManualAttendance = async () => {
       .filter(student => getManualStatus(student.student_id) !== null)
       .map(student => ({
         student_id: student.student_id,
-        status: getManualStatus(student.student_id),
-        period: selectedPeriod.value
+        status: getManualStatus(student.student_id)
       }))
     
     if (records.length === 0) {
@@ -670,8 +621,7 @@ const saveManualAttendance = async () => {
         await attendanceService.registerManualAttendance({
           class_id: classId,
           student_id: record.student_id,
-          status: record.status as string,
-          period: record.period
+          status: record.status as string
         })
         successCount++
       } catch (error) {
@@ -696,17 +646,28 @@ const saveManualAttendance = async () => {
 }
 
 const presentCount = computed(() => {
+  if (attendanceMode.value === 'manual') {
+    return manualPresentCount.value
+  }
   return attendanceRecords.value.length
 })
 
 const isStudentPresent = (studentId: string): boolean => {
+  if (attendanceMode.value === 'manual') {
+    const status = getManualStatus(studentId)
+    return status === 'present' || status === 'late'
+  }
   return attendanceRecords.value.some(record => record.student_id.toString() === studentId)
 }
 
 const getStudentStatus = (studentId: string): string => {
+  // If manual mode, use manual selection
+  if (attendanceMode.value === 'manual') {
+    return getManualStatus(studentId) || 'absent'
+  }
   const record = attendanceRecords.value.find(r => r.student_id.toString() === studentId)
-  // AttendanceRecord no tiene status, siempre retornar 'present' si existe
-  return record ? 'present' : 'absent'
+  if (!record) return 'absent'
+  return (record as any).status || 'present'
 }
 
 const getStudentAttendanceTime = (studentId: string): string => {
@@ -1216,20 +1177,14 @@ watch(attendanceMode, (newMode) => {
   }
 })
 
-// Cargar registros existentes para modo manual
+// Cargar registros existentes para modo manual (sin períodos)
 const loadExistingManualRecords = async () => {
   // Prellenar con registros existentes
   manualAttendance.value = {}
   attendanceRecords.value.forEach(record => {
     const studentId = record.student_id.toString()
-    if (!manualAttendance.value[studentId]) {
-      manualAttendance.value[studentId] = {}
-    }
-    // Usar el período del registro si existe, sino usar 1
-    const period = (record as any).period || 1
-    // Determinar estado basado en timestamp o status
     const status = (record as any).status || 'present'
-    manualAttendance.value[studentId][period] = status
+    manualAttendance.value[studentId] = status
   })
 }
 
