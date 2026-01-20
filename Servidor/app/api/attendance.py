@@ -316,3 +316,126 @@ async def delete_attendance_record(record_id: int):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+
+
+from pydantic import BaseModel
+
+class ManualAttendanceRequest(BaseModel):
+    class_id: str
+    student_id: str
+    status: str  # 'present', 'late', 'absent'
+    period: int = 1
+
+
+@router.post(
+    "/manual",
+    response_model=BaseResponse,
+    summary="Register manual attendance",
+    description="Manually register attendance for a student with a specific status"
+)
+async def register_manual_attendance(request: ManualAttendanceRequest):
+    """
+    Register manual attendance for a student
+    
+    - **class_id**: Class session identifier
+    - **student_id**: Student identifier (cédula)
+    - **status**: Attendance status ('present', 'late', 'absent')
+    - **period**: Class period/hour number (1, 2, 3, etc.)
+    """
+    try:
+        from datetime import datetime
+        
+        client = get_supabase()
+        
+        # Validate status
+        valid_statuses = ['present', 'late', 'absent']
+        if request.status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {valid_statuses}"
+            )
+        
+        # Verify student exists
+        student_response = client.table("students")\
+            .select("student_id, name")\
+            .eq("student_id", request.student_id)\
+            .execute()
+        
+        if not student_response.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Student {request.student_id} not found"
+            )
+        
+        student_name = student_response.data[0]['name']
+        
+        # Check if attendance already exists for this student and class
+        existing = client.table("attendance")\
+            .select("id")\
+            .eq("class_id", request.class_id)\
+            .eq("student_id", request.student_id)\
+            .execute()
+        
+        now = datetime.now().isoformat()
+        
+        if existing.data:
+            # Update existing record - only update status field which we know exists
+            update_data = {"status": request.status}
+            
+            update_response = client.table("attendance")\
+                .update(update_data)\
+                .eq("id", existing.data[0]['id'])\
+                .execute()
+            
+            logger.info(f"Updated manual attendance: {request.student_id} -> {request.status}")
+            
+            return BaseResponse(
+                success=True,
+                message=f"Attendance updated for {student_name}",
+                data={
+                    "student_id": request.student_id,
+                    "student_name": student_name,
+                    "status": request.status,
+                    "period": request.period,
+                    "action": "updated"
+                }
+            )
+        else:
+            # Insert new record with only basic fields that we know exist
+            insert_data = {
+                "class_id": request.class_id,
+                "student_id": request.student_id,
+                "status": request.status,
+                "timestamp": now,
+                "confidence": 1.0
+            }
+            
+            insert_response = client.table("attendance")\
+                .insert(insert_data)\
+                .execute()
+            
+            logger.info(f"Registered manual attendance: {request.student_id} -> {request.status}")
+            
+            # Trigger notification (async, non-blocking)
+            asyncio.create_task(enviar_notificacion_asistencia())
+            
+            return BaseResponse(
+                success=True,
+                message=f"Attendance registered for {student_name}",
+                data={
+                    "student_id": request.student_id,
+                    "student_name": student_name,
+                    "status": request.status,
+                    "period": request.period,
+                    "action": "created"
+                }
+            )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Manual attendance error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
