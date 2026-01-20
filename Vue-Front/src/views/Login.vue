@@ -7,8 +7,12 @@
     <div class="max-w-md w-full">
       <!-- Header -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#d63031] text-white text-4xl mb-4">
-          <FontAwesomeIcon :icon="['fas', 'graduation-cap']" />
+        <div class="inline-flex items-center justify-center mb-4">
+          <img 
+            src="@/assets/LOGO-ULEAM-INICIO.png" 
+            alt="ULEAM Logo" 
+            class="h-24 w-auto"
+          />
         </div>
         <h1 class="text-2xl font-bold text-gray-800">
           Smart Classroom AI

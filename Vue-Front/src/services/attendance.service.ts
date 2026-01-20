@@ -66,5 +66,23 @@ export const attendanceService = {
   }> {
     const response = await apiClient.get(`/attendance/class/${classId}/stats`)
     return response.data
+  },
+
+  /**
+   * Register manual attendance for a student
+   */
+  async registerManualAttendance(data: {
+    class_id: string
+    student_id: string
+    status: string
+    period?: number
+  }): Promise<any> {
+    const response = await apiClient.post('/attendance/manual', {
+      class_id: data.class_id,
+      student_id: data.student_id,
+      status: data.status,
+      period: data.period || 1
+    })
+    return response.data
   }
 }

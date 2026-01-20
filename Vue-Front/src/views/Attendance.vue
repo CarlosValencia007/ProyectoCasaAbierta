@@ -46,7 +46,7 @@
               ]"
             >
               <FontAwesomeIcon :icon="['fas', 'camera']" />
-              Reconocimiento Facial
+              <span class="hidden sm:inline">Reconocimiento</span> Facial
             </button>
             <button
               @click="attendanceMode = 'qr'"
@@ -58,7 +58,19 @@
               ]"
             >
               <FontAwesomeIcon :icon="['fas', 'qrcode']" />
-              Código QR
+              <span class="hidden sm:inline">Código</span> QR
+            </button>
+            <button
+              @click="attendanceMode = 'manual'"
+              :class="[
+                'px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2',
+                attendanceMode === 'manual' 
+                  ? 'bg-[#b81a16] text-white shadow-md' 
+                  : 'text-gray-600 hover:text-gray-800'
+              ]"
+            >
+              <FontAwesomeIcon :icon="['fas', 'list-check']" />
+              Manual
             </button>
           </div>
         </div>
@@ -142,6 +154,174 @@
                   {{ getEmotionEmoji(detectedEmotion.emotion) }} Emoción: <span class="font-bold">{{ getEmotionName(detectedEmotion.emotion) }}</span>
                   <span class="text-xs">({{ Math.round(detectedEmotion.confidence * 100) }}%)</span>
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Section (Modo Manual) -->
+        <div v-if="attendanceMode === 'manual'" class="lg:col-span-2">
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <FontAwesomeIcon :icon="['fas', 'list-check']" class="text-[#b81a16]" />
+                Registro Manual de Asistencia
+              </h2>
+            </div>
+
+            <!-- Sin clase seleccionada -->
+            <div v-if="!selectedClassId" class="text-center py-16 text-gray-500">
+              <FontAwesomeIcon :icon="['fas', 'hand-pointer']" class="text-6xl mb-4 text-gray-300" />
+              <p class="text-lg">Selecciona una clase para registrar asistencia</p>
+            </div>
+
+            <div v-else>
+              <!-- Eliminado: Selector de Período/Hora (uso simplificado por estudiante) -->
+
+              <!-- Acciones rápidas -->
+              <div class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
+                <span class="text-sm text-gray-600 font-medium mr-2">Marcar todos como:</span>
+                <button
+                  @click="markAllAs('present')"
+                  class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                >
+                  <FontAwesomeIcon :icon="['fas', 'check']" class="mr-1" />
+                  Presentes
+                </button>
+                <button
+                  @click="markAllAs('late')"
+                  class="px-3 py-1 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"
+                >
+                  <FontAwesomeIcon :icon="['fas', 'clock']" class="mr-1" />
+                  Retrasados
+                </button>
+                <button
+                  @click="markAllAs('absent')"
+                  class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                >
+                  <FontAwesomeIcon :icon="['fas', 'xmark']" class="mr-1" />
+                  Ausentes
+                </button>
+                <button
+                  @click="clearAllManual"
+                  class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors ml-auto"
+                >
+                  <FontAwesomeIcon :icon="['fas', 'eraser']" class="mr-1" />
+                  Limpiar
+                </button>
+              </div>
+
+              <!-- Lista de estudiantes con estados -->
+              <div v-if="loadingStudents" class="text-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#b81a16] mx-auto mb-2"></div>
+                <p class="text-sm text-gray-500">Cargando estudiantes...</p>
+              </div>
+
+              <div v-else-if="enrolledStudents.length === 0" class="text-center py-8 text-gray-500">
+                <FontAwesomeIcon :icon="['fas', 'user-slash']" class="text-4xl mb-2" />
+                <p>No hay estudiantes inscritos en esta clase</p>
+              </div>
+
+              <div v-else class="space-y-2 max-h-[400px] overflow-y-auto">
+                <div
+                  v-for="student in enrolledStudents"
+                  :key="student.student_id"
+                  class="p-4 rounded-lg border-2 transition-all"
+                  :class="getManualStudentCardClass(student.student_id)"
+                >
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <!-- Info del estudiante -->
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold text-gray-900">{{ student.name }}</p>
+                      <p class="text-xs text-gray-600">{{ student.student_id }}</p>
+                    </div>
+                    
+                    <!-- Opciones de estado -->
+                    <div class="flex gap-2">
+                      <label
+                        :class="[
+                          'flex items-center gap-1 px-3 py-2 rounded-lg cursor-pointer transition-all border-2',
+                          getManualStatus(student.student_id) === 'present'
+                            ? 'bg-green-500 text-white border-green-500'
+                            : 'bg-green-50 text-green-700 border-green-200 hover:border-green-400'
+                        ]"
+                      >
+                        <input
+                          type="radio"
+                          :name="`attendance-${student.student_id}`"
+                          value="present"
+                          :checked="getManualStatus(student.student_id) === 'present'"
+                          @change="setManualStatus(student.student_id, 'present')"
+                          class="sr-only"
+                        />
+                        <FontAwesomeIcon :icon="['fas', 'check']" />
+                        <span class="text-sm font-medium">Presente</span>
+                      </label>
+                      
+                      <label
+                        :class="[
+                          'flex items-center gap-1 px-3 py-2 rounded-lg cursor-pointer transition-all border-2',
+                          getManualStatus(student.student_id) === 'late'
+                            ? 'bg-orange-500 text-white border-orange-500'
+                            : 'bg-orange-50 text-orange-700 border-orange-200 hover:border-orange-400'
+                        ]"
+                      >
+                        <input
+                          type="radio"
+                          :name="`attendance-${student.student_id}`"
+                          value="late"
+                          :checked="getManualStatus(student.student_id) === 'late'"
+                          @change="setManualStatus(student.student_id, 'late')"
+                          class="sr-only"
+                        />
+                        <FontAwesomeIcon :icon="['fas', 'clock']" />
+                        <span class="text-sm font-medium">Retraso</span>
+                      </label>
+                      
+                      <label
+                        :class="[
+                          'flex items-center gap-1 px-3 py-2 rounded-lg cursor-pointer transition-all border-2',
+                          getManualStatus(student.student_id) === 'absent'
+                            ? 'bg-red-500 text-white border-red-500'
+                            : 'bg-red-50 text-red-700 border-red-200 hover:border-red-400'
+                        ]"
+                      >
+                        <input
+                          type="radio"
+                          :name="`attendance-${student.student_id}`"
+                          value="absent"
+                          :checked="getManualStatus(student.student_id) === 'absent'"
+                          @change="setManualStatus(student.student_id, 'absent')"
+                          class="sr-only"
+                        />
+                        <FontAwesomeIcon :icon="['fas', 'xmark']" />
+                        <span class="text-sm font-medium">Falta</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón guardar -->
+              <div class="mt-6 pt-4 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                  <div class="text-sm text-gray-600">
+                    <span class="font-medium">Resumen:</span>
+                    <span class="ml-2 text-green-600">{{ manualPresentCount }} presentes</span>
+                    <span class="mx-1">•</span>
+                    <span class="text-orange-600">{{ manualLateCount }} retrasados</span>
+                    <span class="mx-1">•</span>
+                    <span class="text-red-600">{{ manualAbsentCount }} ausentes</span>
+                  </div>
+                  <button
+                    @click="saveManualAttendance"
+                    :disabled="savingManual || !hasManualChanges"
+                    class="px-6 py-3 bg-[#b81a16] text-white rounded-lg hover:bg-[#9a1512] transition-colors disabled:opacity-50 inline-flex items-center gap-2 font-medium"
+                  >
+                    <FontAwesomeIcon :icon="['fas', savingManual ? 'spinner' : 'save']" :class="{ 'animate-spin': savingManual }" />
+                    {{ savingManual ? 'Guardando...' : 'Guardar Asistencia' }}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -316,8 +496,8 @@ import PageHeader from '@/components/PageHeader.vue'
 
 const route = useRoute()
 
-// Modo de asistencia: 'facial' o 'qr'
-const attendanceMode = ref<'facial' | 'qr'>('facial')
+// Modo de asistencia: 'facial', 'qr' o 'manual'
+const attendanceMode = ref<'facial' | 'qr' | 'manual'>('facial')
 
 // Variables de cámara/facial
 const videoRef = ref<HTMLVideoElement | null>(null)
@@ -345,18 +525,149 @@ const enrolledStudents = ref<Student[]>([])
 const loadingStudents = ref(false)
 const detectedEmotion = ref<{emotion: string, confidence: number} | null>(null)
 
+// Variables para modo manual (uso simplificado por estudiante)
+const manualAttendance = ref<Record<string, 'present' | 'late' | 'absent' | null>>({})
+const savingManual = ref(false)
+
+// Obtener estado manual de un estudiante (sin períodos)
+const getManualStatus = (studentId: string): 'present' | 'late' | 'absent' | null => {
+  return manualAttendance.value[studentId] ?? null
+}
+
+// Establecer estado manual de un estudiante (sin períodos)
+const setManualStatus = (studentId: string, status: 'present' | 'late' | 'absent') => {
+  manualAttendance.value[studentId] = status
+}
+
+// Marcar todos los estudiantes con un estado
+const markAllAs = (status: 'present' | 'late' | 'absent') => {
+  enrolledStudents.value.forEach(student => {
+    setManualStatus(student.student_id, status)
+  })
+}
+
+// Limpiar todos los estados manuales
+const clearAllManual = () => {
+  enrolledStudents.value.forEach(student => {
+    if (manualAttendance.value[student.student_id] !== undefined) {
+      delete manualAttendance.value[student.student_id]
+    }
+  })
+}
+
+// Contadores (uso simplificado por estudiante)
+const manualPresentCount = computed(() => {
+  return enrolledStudents.value.filter(s => getManualStatus(s.student_id) === 'present').length
+})
+
+const manualLateCount = computed(() => {
+  return enrolledStudents.value.filter(s => getManualStatus(s.student_id) === 'late').length
+})
+
+const manualAbsentCount = computed(() => {
+  return enrolledStudents.value.filter(s => getManualStatus(s.student_id) === 'absent').length
+})
+
+// Verificar si hay cambios pendientes
+const hasManualChanges = computed(() => {
+  return enrolledStudents.value.some(s => getManualStatus(s.student_id) !== null)
+})
+
+// Clase CSS para tarjeta de estudiante en modo manual
+const getManualStudentCardClass = (studentId: string): string => {
+  const status = getManualStatus(studentId)
+  switch (status) {
+    case 'present':
+      return 'bg-green-50 border-green-300'
+    case 'late':
+      return 'bg-orange-50 border-orange-300'
+    case 'absent':
+      return 'bg-red-50 border-red-300'
+    default:
+      return 'bg-white border-gray-200'
+  }
+}
+
+// Guardar asistencia manual
+const saveManualAttendance = async () => {
+  if (!selectedClassId.value) return
+  
+  savingManual.value = true
+  try {
+    const selectedClass = activeClasses.value.find(c => c.id === Number(selectedClassId.value))
+    if (!selectedClass) throw new Error('Clase no encontrada')
+    
+    const classId = selectedClass.class_id || `CLASS-${selectedClass.id}`
+    
+    // Preparar registros a guardar
+    const records = enrolledStudents.value
+      .filter(student => getManualStatus(student.student_id) !== null)
+      .map(student => ({
+        student_id: student.student_id,
+        status: getManualStatus(student.student_id)
+      }))
+    
+    if (records.length === 0) {
+      alert('No hay registros para guardar')
+      return
+    }
+    
+    // Guardar cada registro
+    let successCount = 0
+    let errorCount = 0
+    
+    for (const record of records) {
+      try {
+        await attendanceService.registerManualAttendance({
+          class_id: classId,
+          student_id: record.student_id,
+          status: record.status as string
+        })
+        successCount++
+      } catch (error) {
+        console.error(`Error registrando asistencia para ${record.student_id}:`, error)
+        errorCount++
+      }
+    }
+    
+    if (successCount > 0) {
+      alert(`✅ Asistencia guardada: ${successCount} registros exitosos${errorCount > 0 ? `, ${errorCount} errores` : ''}`)
+      await loadAttendanceRecords()
+    } else {
+      alert('❌ No se pudo guardar ningún registro')
+    }
+    
+  } catch (error: any) {
+    console.error('Error guardando asistencia manual:', error)
+    alert('Error al guardar: ' + (error.response?.data?.detail || error.message))
+  } finally {
+    savingManual.value = false
+  }
+}
+
 const presentCount = computed(() => {
+  if (attendanceMode.value === 'manual') {
+    return manualPresentCount.value
+  }
   return attendanceRecords.value.length
 })
 
 const isStudentPresent = (studentId: string): boolean => {
+  if (attendanceMode.value === 'manual') {
+    const status = getManualStatus(studentId)
+    return status === 'present' || status === 'late'
+  }
   return attendanceRecords.value.some(record => record.student_id.toString() === studentId)
 }
 
 const getStudentStatus = (studentId: string): string => {
+  // If manual mode, use manual selection
+  if (attendanceMode.value === 'manual') {
+    return getManualStatus(studentId) || 'absent'
+  }
   const record = attendanceRecords.value.find(r => r.student_id.toString() === studentId)
-  // AttendanceRecord no tiene status, siempre retornar 'present' si existe
-  return record ? 'present' : 'absent'
+  if (!record) return 'absent'
+  return (record as any).status || 'present'
 }
 
 const getStudentAttendanceTime = (studentId: string): string => {
@@ -852,15 +1163,30 @@ watch(selectedClassId, () => {
   }
 })
 
-// Detener cámara cuando cambie a modo QR
+// Detener cámara/QR cuando cambie de modo
 watch(attendanceMode, (newMode) => {
-  if (newMode === 'qr' && isCameraActive.value) {
+  if (newMode !== 'facial' && isCameraActive.value) {
     stopCamera()
   }
-  if (newMode === 'facial' && qrGenerated.value) {
+  if (newMode !== 'qr' && qrGenerated.value) {
     stopCodeRefresh()
   }
+  // Cargar registros existentes al cambiar a modo manual
+  if (newMode === 'manual' && selectedClassId.value) {
+    loadExistingManualRecords()
+  }
 })
+
+// Cargar registros existentes para modo manual (sin períodos)
+const loadExistingManualRecords = async () => {
+  // Prellenar con registros existentes
+  manualAttendance.value = {}
+  attendanceRecords.value.forEach(record => {
+    const studentId = record.student_id.toString()
+    const status = (record as any).status || 'present'
+    manualAttendance.value[studentId] = status
+  })
+}
 
 onMounted(async () => {
   await loadActiveClasses()
