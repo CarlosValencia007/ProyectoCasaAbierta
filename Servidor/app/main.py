@@ -61,15 +61,16 @@ app = FastAPI(
 # MIDDLEWARE CONFIGURATION
 # ============================================================================
 
-# CORS Middleware
-logger.info(f"🌐 CORS Origins from settings: {settings.cors_origins_list}")
+# CORS Middleware - Allow all origins without credentials
+logger.info(f"🌐 Configuring CORS to allow all origins")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=False,  # Must be False when using wildcard
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # No credentials needed
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["*"]
+    expose_headers=["*"],
+    max_age=3600  # Cache preflight for 1 hour
 )
 
 # GZip Compression Middleware
