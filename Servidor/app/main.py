@@ -83,19 +83,6 @@ async def log_requests(request: Request, call_next):
     """Log all incoming requests with timing"""
     start_time = time.time()
     
-    # Handle OPTIONS requests immediately
-    if request.method == "OPTIONS":
-        from fastapi.responses import Response
-        return Response(
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Max-Age": "3600"
-            }
-        )
-    
     logger.info(f"→ {request.method} {request.url.path}")
     
     response = await call_next(request)
